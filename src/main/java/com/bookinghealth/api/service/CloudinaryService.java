@@ -30,4 +30,12 @@ public class CloudinaryService {
                 "resource_type", "auto"
         ));
     }
+
+    public String uploadFileAndGetUrl(MultipartFile file) throws IOException {
+        if (file == null || file.isEmpty()) {
+            return null;
+        }
+        Map uploadResult = uploadFile(file);
+        return (String) uploadResult.get("secure_url");
+    }
 }

@@ -19,6 +19,7 @@ public enum ErrorCode {
   INVALID_PASSWORD(1006, HttpStatus.BAD_REQUEST, "Mật khẩu phải có ít nhất 8 ký tự"),
     INVALID_PHONE(1007, HttpStatus.BAD_REQUEST, "Số điện thoại phải từ 10-11 số"),
     PHONE_REQUIRE(1008, HttpStatus.BAD_REQUEST, "Số điên thoại là bắt buộc"),
+    UPLOAD_FILE_FAILED(1009, HttpStatus.BAD_REQUEST, "Tạo ảnh đại diện không thành công"),
     ;
 
   ErrorCode(int code, HttpStatusCode statusCode, String message) {

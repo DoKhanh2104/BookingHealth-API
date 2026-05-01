@@ -30,6 +30,7 @@ public class UserService {
     UserMapper userMapper;
     PasswordEncoder passwordEncoder;
     RoleRepository roleRepository;
+    CloudinaryService cloudinaryService;
 
     public UserResponse createUser(UserCreationRequest request) {
         if(userRepository.existsByPhone(request.getPhone())) {
@@ -43,6 +44,16 @@ public class UserService {
         User user = userMapper.toUser(request);
 
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+
+        // Upload avatar to Cloudinary if provided
+        try {
+            if (request.getAvatar() != null && !request.getAvatar().isEmpty()) {
+                String avatarUrl = cloudinaryService.uploadFileAndGetUrl(request.getAvatar());
+                user.setAvatar(avatarUrl);
+            }
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.UPLOAD_FILE_FAILED);
+        }
 
         HashSet<Role> roles = new HashSet<>();
         roleRepository.findByRoleName(PredefinedRole.USER_ROLE).ifPresent(roles::add);
