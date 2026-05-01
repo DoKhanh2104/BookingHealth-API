@@ -1,4 +1,4 @@
-package com.bookinghealth.api.dto.request;
+package com.bookinghealth.api.dto.request.admin;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;

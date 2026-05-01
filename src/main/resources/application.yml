@@ -17,3 +17,10 @@ spring:
         highlight_sql: true
   application:
     name: "booking-health"
+
+#Config cloudinary
+cloudinary:
+  cloud-name: "dujh6cwsj"
+  api-key: "863423677598261"
+  api-secret: "TpCqRyHXlJ-xFzVj_KAJb9VDMO4"
+  folder-name: "booking-health"

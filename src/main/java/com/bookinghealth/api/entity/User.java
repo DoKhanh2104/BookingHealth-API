@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 @Getter
 @Setter
 @Builder
@@ -11,23 +14,23 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
-@Table(name = "Nguoi_Dung")
+@Table(name = "NGUOI_DUNG")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "maNguoiDung")
+    @Column(name = "maNguoiDung", nullable = false)
     Long id;
 
-    @Column(name = "soDienThoai")
+    @Column(name = "soDienThoai", length = 20)
     String phone;
 
-    @Column(name = "email")
+    @Column(name = "email", length = 50)
     String email;
 
     @Column(name = "matKhau")
     String password;
 
-    @Column(name = "hoTen")
+    @Column(name = "hoTen", length = 50)
     String name;
 
     @Column(name = "trangThai")
@@ -35,4 +38,12 @@ public class User {
 
     @Column(name = "anhDaiDien")
     String avatar;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "VAI_TRO_NGUOI_DUNG",
+            joinColumns = @JoinColumn(name = "maNguoiDung"),
+            inverseJoinColumns = @JoinColumn(name = "maVaiTro")
+    )
+    Set<Role> roles = new LinkedHashSet<>();
 }
