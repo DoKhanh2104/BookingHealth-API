@@ -1,8 +1,7 @@
 package com.bookinghealth.api.dto.request.admin;
 
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import java.util.Set;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,18 +12,14 @@ import org.springframework.web.multipart.MultipartFile;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserCreationRequest {
-
-  @NotBlank(message = "PHONE_REQUIRE")
-  @Size(min = 10, max = 11, message = "INVALID_PHONE")
-  String phone;
+public class UserUpdateRequest {
 
   @Email(message = "INVALID_EMAIL")
   String email;
 
-  @Size(min = 8, message = "INVALID_PASSWORD")
-  String password;
-
   String name;
   MultipartFile avatar;
+
+  Set<String> roles;
+  String status;
 }

@@ -11,16 +11,16 @@ import org.springframework.http.HttpStatusCode;
 public enum ErrorCode {
   UNCATEGORIZED_EXCEPTION(9999, HttpStatus.INTERNAL_SERVER_ERROR, "Uncategorized exception"),
   INVALID_KEY(10000, HttpStatus.BAD_REQUEST, "Invalid key"),
-  USER_EXISTED(1001, HttpStatus.BAD_REQUEST, "User already exists"),
-  USER_NOT_FOUND(1002, HttpStatus.NOT_FOUND, "User not found"),
-  UNAUTHENTICATED(1003, HttpStatus.UNAUTHORIZED, "Unauthenticated"),
-  UNAUTHORIZED(1004, HttpStatus.FORBIDDEN, "You do not have permission to perform this operation"),
+  USER_EXISTED(1001, HttpStatus.BAD_REQUEST, "Người dùng đã tồn tại"),
+  USER_NOT_FOUND(1002, HttpStatus.NOT_FOUND, "Không tìm thấy người dùng"),
+  UNAUTHENTICATED(1003, HttpStatus.UNAUTHORIZED, "Vui lòng đăng nhập để thực hiện"),
+  UNAUTHORIZED(1004, HttpStatus.FORBIDDEN, "Không có quyền truy cập"),
   INVALID_EMAIL(1005, HttpStatus.BAD_REQUEST, "Email không đúng định dạng"),
   INVALID_PASSWORD(1006, HttpStatus.BAD_REQUEST, "Mật khẩu phải có ít nhất 8 ký tự"),
-    INVALID_PHONE(1007, HttpStatus.BAD_REQUEST, "Số điện thoại phải từ 10-11 số"),
-    PHONE_REQUIRE(1008, HttpStatus.BAD_REQUEST, "Số điên thoại là bắt buộc"),
-    UPLOAD_FILE_FAILED(1009, HttpStatus.BAD_REQUEST, "Tạo ảnh đại diện không thành công"),
-    ;
+  INVALID_PHONE(1007, HttpStatus.BAD_REQUEST, "Số điện thoại phải từ 10-11 số"),
+  PHONE_REQUIRE(1008, HttpStatus.BAD_REQUEST, "Số điên thoại là bắt buộc"),
+  UPLOAD_FILE_FAILED(1009, HttpStatus.BAD_REQUEST, "Tạo ảnh đại diện không thành công"),
+  ;
 
   ErrorCode(int code, HttpStatusCode statusCode, String message) {
     this.code = code;
