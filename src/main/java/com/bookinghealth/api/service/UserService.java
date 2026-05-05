@@ -79,7 +79,7 @@ public class UserService {
             .findById(userId)
             .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-    if (userRepository.existsByEmail(request.getEmail())) {
+    if (userRepository.existsByEmailAndIdNot(request.getEmail(), userId)) {
       throw new AppException(ErrorCode.USER_EXISTED);
     }
 

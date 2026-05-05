@@ -24,3 +24,7 @@ cloudinary:
   api-key: "863423677598261"
   api-secret: "TpCqRyHXlJ-xFzVj_KAJb9VDMO4"
   folder-name: "booking-health"
+
+jwt:
+  signerKey: "527bda0702998f7cf3d981f40d37bfe17aee1d39e4b1e14e1faf419d404a103e"
+  valid-duration: 3600

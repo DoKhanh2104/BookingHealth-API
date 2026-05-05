@@ -22,8 +22,7 @@ public class UserController {
   UserService userService;
 
   @PostMapping
-  public ApiResponse<UserResponse> createUser(
-      @Valid @ModelAttribute UserCreationRequest request) {
+  public ApiResponse<UserResponse> createUser(@Valid @ModelAttribute UserCreationRequest request) {
     return ApiResponse.<UserResponse>builder().result(userService.createUser(request)).build();
   }
 
