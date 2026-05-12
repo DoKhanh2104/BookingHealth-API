@@ -20,6 +20,9 @@ public enum ErrorCode {
   INVALID_PHONE(1007, HttpStatus.BAD_REQUEST, "Số điện thoại phải từ 10-11 số"),
   PHONE_REQUIRE(1008, HttpStatus.BAD_REQUEST, "Số điên thoại là bắt buộc"),
   UPLOAD_FILE_FAILED(1009, HttpStatus.BAD_REQUEST, "Tạo ảnh đại diện không thành công"),
+    SPECIALTY_NOT_FOUND(1010, HttpStatus.NOT_FOUND, "Không tìm thấy chuyên khoa"),
+    SPECIALTY_EXISTED(1011, HttpStatus.BAD_REQUEST, "Tên chuyên khoa đã tòn tại"),
+    SPECIALTY_NAME_REQUIRE(1012, HttpStatus.BAD_REQUEST, "Tên chuyên khoa là bắt buộc")
   ;
 
   ErrorCode(int code, HttpStatusCode statusCode, String message) {
