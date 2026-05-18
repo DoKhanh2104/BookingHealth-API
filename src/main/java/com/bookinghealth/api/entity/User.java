@@ -44,4 +44,7 @@ public class User {
       joinColumns = @JoinColumn(name = "maNguoiDung"),
       inverseJoinColumns = @JoinColumn(name = "maVaiTro"))
   Set<Role> roles = new LinkedHashSet<>();
+
+  @OneToOne(mappedBy = "user")
+  private Doctor doctor;
 }

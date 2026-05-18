@@ -1,5 +1,6 @@
 package com.bookinghealth.api.dto.request.admin;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -9,8 +10,8 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Geocoding {
+public class GeocodingRequest {
 
-    String longitude;
-    String latitude;
+  @NotBlank(message = "ADDRESS_REQUIRE")
+  String address;
 }

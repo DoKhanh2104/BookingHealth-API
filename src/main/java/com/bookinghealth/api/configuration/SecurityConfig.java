@@ -15,6 +15,7 @@ import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
@@ -37,7 +38,7 @@ public class SecurityConfig {
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http.cors(Customizer.withDefaults())
-            .csrf(csrf -> csrf.disable())
+        .csrf(csrf -> csrf.disable())
         .authorizeHttpRequests(
             auth ->
                 auth.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS)
@@ -67,14 +68,18 @@ public class SecurityConfig {
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", config);
     FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
-      bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
+    bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
 
-
-      return new CorsFilter(source);
+    return new CorsFilter(source);
   }
 
   @Bean
   PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder();
+  }
+
+  @Bean
+  public RestTemplate restTemplate() {
+    return new RestTemplate();
   }
 }

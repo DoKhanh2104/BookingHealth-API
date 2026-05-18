@@ -2,7 +2,6 @@ package com.bookinghealth.api.dto.response.admin;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Data
 @NoArgsConstructor
@@ -10,10 +9,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class SpecialtyResponse {
-    Long id;
+  Long id;
 
+  String specialtyName;
 
-    String specialtyName;
-
-    String description;
+  String description;
 }

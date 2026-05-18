@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 public class GlobalExceptionHandler {
 
   @ExceptionHandler(value = Exception.class)
-  public ResponseEntity<ApiResponse> handleException(RuntimeException exception) {
+  public ResponseEntity<ApiResponse> handleException(Exception exception) {
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
         .body(
             ApiResponse.builder()

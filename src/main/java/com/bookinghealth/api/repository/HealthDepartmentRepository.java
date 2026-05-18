@@ -1,4 +1,6 @@
 package com.bookinghealth.api.repository;
 
-public class HealthDepartmentRepository {
-}
+import com.bookinghealth.api.entity.HealthDepartment;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface HealthDepartmentRepository extends JpaRepository<HealthDepartment, String> {}

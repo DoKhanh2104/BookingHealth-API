@@ -28,3 +28,8 @@ cloudinary:
 jwt:
   signerKey: "527bda0702998f7cf3d981f40d37bfe17aee1d39e4b1e14e1faf419d404a103e"
   valid-duration: 3600
+
+#Config LocationIQ Geocoding
+locationiq:
+  api:
+    key: "pk.96e9f8e6ed76e5de53ce881168c84905"

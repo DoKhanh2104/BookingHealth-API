@@ -7,7 +7,9 @@ import org.mapstruct.*;
 
 @Mapper(componentModel = "spring")
 public interface SpecialtyMapper {
-    Specialty toSpecialty(SpecialtyRequest request);
-    SpecialtyResponse toSpecialtyResponse(Specialty specialty);
-    void updateSpecialtyFromRequest(@MappingTarget Specialty specialty, SpecialtyRequest request);
+  Specialty toSpecialty(SpecialtyRequest request);
+
+  SpecialtyResponse toSpecialtyResponse(Specialty specialty);
+
+  void updateSpecialtyFromRequest(@MappingTarget Specialty specialty, SpecialtyRequest request);
 }

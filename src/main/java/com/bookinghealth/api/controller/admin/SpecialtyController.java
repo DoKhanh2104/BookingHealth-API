@@ -19,32 +19,34 @@ import org.springframework.web.bind.annotation.*;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SpecialtyController {
 
-    SpecialtyService specialtyService;
+  SpecialtyService specialtyService;
 
-    @PostMapping
-    public ApiResponse<SpecialtyResponse> create(@RequestBody @Valid SpecialtyRequest request) {
-        return ApiResponse.<SpecialtyResponse>builder()
-                .result(specialtyService.createSpecialty(request))
-                .build();
-    }
+  @PostMapping
+  public ApiResponse<SpecialtyResponse> create(@RequestBody @Valid SpecialtyRequest request) {
+    return ApiResponse.<SpecialtyResponse>builder()
+        .result(specialtyService.createSpecialty(request))
+        .build();
+  }
 
-    @GetMapping
-    public ApiResponse<Page<SpecialtyResponse>> getAll(@PageableDefault(size = 10) Pageable pageable) {
-        return ApiResponse.<Page<SpecialtyResponse>>builder()
-                .result(specialtyService.getAllSpecialties(pageable))
-                .build();
-    }
+  @GetMapping
+  public ApiResponse<Page<SpecialtyResponse>> getAll(
+      @PageableDefault(size = 10) Pageable pageable) {
+    return ApiResponse.<Page<SpecialtyResponse>>builder()
+        .result(specialtyService.getAllSpecialties(pageable))
+        .build();
+  }
 
-    @PutMapping("/{id}")
-    public ApiResponse<SpecialtyResponse> update(@PathVariable Long id, @RequestBody SpecialtyRequest request) {
-        return ApiResponse.<SpecialtyResponse>builder()
-                .result(specialtyService.updateSpecialty(id, request))
-                .build();
-    }
+  @PutMapping("/{id}")
+  public ApiResponse<SpecialtyResponse> update(
+      @PathVariable Long id, @RequestBody SpecialtyRequest request) {
+    return ApiResponse.<SpecialtyResponse>builder()
+        .result(specialtyService.updateSpecialty(id, request))
+        .build();
+  }
 
-    @DeleteMapping("/{id}")
-    public ApiResponse<String> delete(@PathVariable Long id) {
-        specialtyService.deleteSpecialty(id);
-        return ApiResponse.<String>builder().result("Đã xóa chuyên khoa").build();
-    }
+  @DeleteMapping("/{id}")
+  public ApiResponse<String> delete(@PathVariable Long id) {
+    specialtyService.deleteSpecialty(id);
+    return ApiResponse.<String>builder().result("Đã xóa chuyên khoa").build();
+  }
 }

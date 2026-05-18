@@ -7,9 +7,9 @@ import com.bookinghealth.api.exception.AppException;
 import com.bookinghealth.api.exception.ErrorCode;
 import com.bookinghealth.api.mapper.SpecialtyMapper;
 import com.bookinghealth.api.repository.SpecialtyRepository;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import lombok.AccessLevel;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,37 +18,39 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SpecialtyService {
-    SpecialtyRepository specialtyRepository;
-    SpecialtyMapper specialtyMapper;
+  SpecialtyRepository specialtyRepository;
+  SpecialtyMapper specialtyMapper;
 
-    public SpecialtyResponse createSpecialty(SpecialtyRequest request) {
-        if (specialtyRepository.existsBySpecialtyName(request.getSpecialtyName()))
-            throw new AppException(ErrorCode.SPECIALTY_EXISTED);
+  public SpecialtyResponse createSpecialty(SpecialtyRequest request) {
+    if (specialtyRepository.existsBySpecialtyName(request.getSpecialtyName()))
+      throw new AppException(ErrorCode.SPECIALTY_EXISTED);
 
-        Specialty specialty = specialtyMapper.toSpecialty(request);
+    Specialty specialty = specialtyMapper.toSpecialty(request);
 
-        specialty = specialtyRepository.save(specialty);
+    specialty = specialtyRepository.save(specialty);
 
-        return specialtyMapper.toSpecialtyResponse(specialty);
+    return specialtyMapper.toSpecialtyResponse(specialty);
+  }
+
+  public Page<SpecialtyResponse> getAllSpecialties(Pageable pageable) {
+    return specialtyRepository.findAll(pageable).map(specialtyMapper::toSpecialtyResponse);
+  }
+
+  public SpecialtyResponse updateSpecialty(Long id, SpecialtyRequest request) {
+    Specialty specialty =
+        specialtyRepository
+            .findById(id)
+            .orElseThrow(() -> new AppException(ErrorCode.SPECIALTY_NOT_FOUND));
+
+    specialtyMapper.updateSpecialtyFromRequest(specialty, request);
+
+    return specialtyMapper.toSpecialtyResponse(specialtyRepository.save(specialty));
+  }
+
+  public void deleteSpecialty(Long id) {
+    if (!specialtyRepository.existsById(id)) {
+      throw new AppException(ErrorCode.SPECIALTY_NOT_FOUND);
     }
-
-    public Page<SpecialtyResponse> getAllSpecialties(Pageable pageable) {
-        return specialtyRepository.findAll(pageable).map(specialtyMapper::toSpecialtyResponse);
-    }
-
-    public SpecialtyResponse updateSpecialty(Long id, SpecialtyRequest request) {
-        Specialty specialty = specialtyRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.SPECIALTY_NOT_FOUND));
-
-        specialtyMapper.updateSpecialtyFromRequest(specialty, request);
-
-        return specialtyMapper.toSpecialtyResponse(specialtyRepository.save(specialty));
-    }
-
-    public void deleteSpecialty(Long id) {
-        if (!specialtyRepository.existsById(id)) {
-            throw new AppException(ErrorCode.SPECIALTY_NOT_FOUND);
-        }
-        specialtyRepository.deleteById(id);
-    }
+    specialtyRepository.deleteById(id);
+  }
 }
