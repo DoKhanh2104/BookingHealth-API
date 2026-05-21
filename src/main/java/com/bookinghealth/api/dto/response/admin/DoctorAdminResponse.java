@@ -1,9 +1,8 @@
 package com.bookinghealth.api.dto.response.admin;
 
+import java.time.LocalDate;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.time.LocalDate;
 
 @Getter
 @Setter

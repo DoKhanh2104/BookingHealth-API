@@ -2,6 +2,7 @@ package com.bookinghealth.api.entity;
 
 import jakarta.persistence.*;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -47,4 +48,10 @@ public class User {
 
   @OneToOne(mappedBy = "user")
   private Doctor doctor;
+
+  @OneToMany(mappedBy = "user")
+  private List<DoctorReview> reviews;
+
+  @OneToMany(mappedBy = "user")
+  private List<Appointment> appointments;
 }

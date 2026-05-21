@@ -17,10 +17,10 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class DoctorStatusUpdateRequest {
 
-    @NotNull(message = "Status is required")
-    @Min(value = 1, message = "Status must be 1 (VERIFIED) or 2 (REJECTED)")
-    @Max(value = 2, message = "Status must be 1 (VERIFIED) or 2 (REJECTED)")
-    Integer status;
+  @NotNull(message = "Status is required")
+  @Min(value = 1, message = "Status must be 1 (VERIFIED) or 2 (REJECTED)")
+  @Max(value = 2, message = "Status must be 1 (VERIFIED) or 2 (REJECTED)")
+  Integer status;
 
-    String rejectReason;
+  String rejectReason;
 }

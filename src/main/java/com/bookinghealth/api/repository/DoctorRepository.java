@@ -16,7 +16,7 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
           + "FROM Doctor d "
           + "JOIN d.user u "
           + "LEFT JOIN d.clinic c "
-              + "LEFT JOIN d.specialties s "
+          + "LEFT JOIN d.specialties s "
           + "WHERE (:search IS NULL OR u.name LIKE %:search% OR d.practiceLicenseNumber LIKE %:search%) "
           + "AND (:status IS NULL OR d.status = :status)")
   Page<DoctorAdminResponse> searchDoctorsForAdmin(

@@ -13,10 +13,10 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ClinicAdminResponse {
-    Long id;
-    String clinicName;
-    String address;
-    Double longitude;
-    Double latitude;
-    Integer soLuongBacSi;
+  Long id;
+  String clinicName;
+  String address;
+  Double longitude;
+  Double latitude;
+  Integer soLuongBacSi;
 }

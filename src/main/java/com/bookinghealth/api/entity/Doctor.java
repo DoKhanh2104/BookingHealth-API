@@ -3,6 +3,7 @@ package com.bookinghealth.api.entity;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -51,4 +52,13 @@ public class Doctor {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "maPhongKham")
   Clinic clinic;
+
+  @OneToMany(mappedBy = "doctor")
+  List<DoctorReview> reviews;
+
+  @OneToMany(mappedBy = "doctor")
+  List<WorkSchedule> workSchedules;
+
+  @OneToMany(mappedBy = "doctor")
+  List<Appointment> appointments;
 }
