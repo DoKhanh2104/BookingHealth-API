@@ -12,6 +12,8 @@ public enum ErrorCode {
   UNCATEGORIZED_EXCEPTION(9999, HttpStatus.INTERNAL_SERVER_ERROR, "Uncategorized exception"),
   INVALID_KEY(10000, HttpStatus.BAD_REQUEST, "Invalid key"),
   USER_EXISTED(1001, HttpStatus.BAD_REQUEST, "Người dùng đã tồn tại"),
+  PHONE_EXISTED(1017, HttpStatus.BAD_REQUEST, "Số điện thoại đã được sử dụng"),
+  EMAIL_EXISTED(1018, HttpStatus.BAD_REQUEST, "Email đã được sử dụng"),
   USER_NOT_FOUND(1002, HttpStatus.NOT_FOUND, "Không tìm thấy người dùng"),
   UNAUTHENTICATED(1003, HttpStatus.UNAUTHORIZED, "Vui lòng đăng nhập để thực hiện"),
   UNAUTHORIZED(1004, HttpStatus.FORBIDDEN, "Không có quyền truy cập"),

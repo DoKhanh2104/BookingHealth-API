@@ -28,6 +28,7 @@ public class SecurityConfig {
     "/auth/introspect",
     "/auth/logout",
     "/auth/register",
+    "/auth/signup",
     "/auth/refresh",
     "/swagger-ui/**"
   };
