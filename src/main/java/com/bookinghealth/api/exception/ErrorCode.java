@@ -30,6 +30,8 @@ public enum ErrorCode {
   TIME_SLOT_EXISTED(1015, HttpStatus.BAD_REQUEST, "Khung giờ đã tồn tại"),
   TIME_SLOT_NOT_FOUND(1016, HttpStatus.NOT_FOUND, "Không tìm thấy khung giờ"),
   GOOGLE_LOGIN_FAILED(1019, HttpStatus.BAD_REQUEST, "Đăng nhập Google thất bại"),
+    TOKEN_NOT_FOUND(1020, HttpStatus.NOT_FOUND, "Đường dẫn không hợp lệ"),
+    TOKEN_EXPIRATION(1021, HttpStatus.BAD_REQUEST, "Đường dẫn lấy lại mật khẩu đã hết hạn")
   ;
 
   ErrorCode(int code, HttpStatusCode statusCode, String message) {

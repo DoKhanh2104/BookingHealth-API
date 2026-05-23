@@ -31,6 +31,8 @@ public class SecurityConfig {
     "/auth/signup",
     "/auth/google",
     "/auth/refresh",
+    "/auth/forgot-password",  // gửi email đặt lại mật khẩu
+    "/auth/reset-password",   // đặt lại mật khẩu mới bằng token
     "/swagger-ui/**"
   };
 
