@@ -2,6 +2,7 @@ package com.bookinghealth.api.controller;
 
 import com.bookinghealth.api.dto.request.AuthenticationRequest;
 import com.bookinghealth.api.dto.request.IntrospectRequest;
+import com.bookinghealth.api.dto.request.client.GoogleLoginRequest;
 import com.bookinghealth.api.dto.request.client.SignupRequest;
 import com.bookinghealth.api.dto.response.ApiResponse;
 import com.bookinghealth.api.dto.response.AuthenticationResponse;
@@ -42,10 +43,17 @@ public class AuthenticationController {
   }
 
   @PostMapping("/signup")
-  public ApiResponse<AuthenticationResponse> register(
-          @RequestBody SignupRequest request) {
-      return ApiResponse.<AuthenticationResponse>builder()
-              .result(authenticationService.register(request))
-              .build();
+  public ApiResponse<AuthenticationResponse> register(@RequestBody SignupRequest request) {
+    return ApiResponse.<AuthenticationResponse>builder()
+        .result(authenticationService.register(request))
+        .build();
+  }
+
+  @PostMapping("/google")
+  public ApiResponse<AuthenticationResponse> loginWithGoogle(
+      @RequestBody GoogleLoginRequest request) {
+    return ApiResponse.<AuthenticationResponse>builder()
+        .result(authenticationService.loginWithGoogle(request))
+        .build();
   }
 }

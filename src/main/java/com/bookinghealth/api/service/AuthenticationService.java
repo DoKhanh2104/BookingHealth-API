@@ -4,6 +4,7 @@ import com.bookinghealth.api.constant.PredefinedRole;
 import com.bookinghealth.api.constant.PredefinedStatus;
 import com.bookinghealth.api.dto.request.AuthenticationRequest;
 import com.bookinghealth.api.dto.request.IntrospectRequest;
+import com.bookinghealth.api.dto.request.client.GoogleLoginRequest;
 import com.bookinghealth.api.dto.request.client.SignupRequest;
 import com.bookinghealth.api.dto.response.AuthenticationResponse;
 import com.bookinghealth.api.dto.response.IntrospectResponse;
@@ -22,6 +23,9 @@ import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.*;
+import org.springframework.web.client.RestTemplate;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +43,8 @@ import org.springframework.util.CollectionUtils;
 public class AuthenticationService {
 
   UserRepository userRepository;
-    private final RoleRepository roleRepository;
+  RoleRepository roleRepository;
+  RestTemplate restTemplate;
 
     @NonFinal
   @Value("${jwt.signerKey}")
@@ -54,9 +59,12 @@ public class AuthenticationService {
     // Header
     JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
 
+    // Dùng email làm subject nếu phone null (đăng nhập Google)
+    String subject = (user.getPhone() != null) ? user.getPhone() : user.getEmail();
+
     JWTClaimsSet jwtClaimsSet =
         new JWTClaimsSet.Builder()
-            .subject(user.getPhone())
+            .subject(subject)
             .issuer("bookinghealth")
             .issueTime(new Date())
             .expirationTime(
@@ -153,6 +161,64 @@ public class AuthenticationService {
       String token = generateToken(user);
 
       return AuthenticationResponse.builder().token(token).authenticated(true).build();
+  }
+
+  public AuthenticationResponse loginWithGoogle(GoogleLoginRequest request) {
+    // 1. Gọi Google UserInfo API để lấy thông tin user
+    String googleUserInfoUrl = "https://www.googleapis.com/oauth2/v3/userinfo";
+    HttpHeaders headers = new HttpHeaders();
+    headers.setBearerAuth(request.getToken());
+    HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+    Map<String, Object> googleUser;
+    try {
+      ResponseEntity<Map<String, Object>> response =
+          restTemplate.exchange(
+              googleUserInfoUrl,
+              HttpMethod.GET,
+              entity,
+              new ParameterizedTypeReference<>() {});
+      googleUser = response.getBody();
+    } catch (Exception e) {
+      throw new AppException(ErrorCode.GOOGLE_LOGIN_FAILED);
+    }
+
+    if (googleUser == null || googleUser.get("email") == null) {
+      throw new AppException(ErrorCode.GOOGLE_LOGIN_FAILED);
+    }
+
+    String email = (String) googleUser.get("email");
+    String name = (String) googleUser.getOrDefault("name", email);
+    String avatar = (String) googleUser.get("picture");
+
+    // 2. Tìm user theo email, nếu chưa có thì tự động tạo mới (auto-register)
+    User user =
+        userRepository
+            .findByEmail(email)
+            .orElseGet(
+                () -> {
+                  User newUser =
+                      User.builder()
+                          .email(email)
+                          .name(name)
+                          .avatar(avatar)
+                          .status(PredefinedStatus.ACTIVE)
+                          .build();
+                  HashSet<Role> roles = new HashSet<>();
+                  roleRepository.findByRoleName(PredefinedRole.USER_ROLE).ifPresent(roles::add);
+                  newUser.setRoles(roles);
+                  return userRepository.save(newUser);
+                });
+
+    // 3. Cập nhật avatar nếu chưa có
+    if (user.getAvatar() == null && avatar != null) {
+      user.setAvatar(avatar);
+      userRepository.save(user);
+    }
+
+    // 4. Tạo JWT của app và trả về
+    String token = generateToken(user);
+    return AuthenticationResponse.builder().token(token).authenticated(true).build();
   }
 
 }

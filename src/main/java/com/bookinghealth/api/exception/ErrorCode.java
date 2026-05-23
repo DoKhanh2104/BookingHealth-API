@@ -28,8 +28,9 @@ public enum ErrorCode {
   ADDRESS_REQUIRE(1013, HttpStatus.BAD_REQUEST, "Địa chỉ là bắt buộc"),
   DOCTOR_NOT_FOUND(1014, HttpStatus.NOT_FOUND, "Không tìm thấy bác sĩ"),
   TIME_SLOT_EXISTED(1015, HttpStatus.BAD_REQUEST, "Khung giờ đã tồn tại"),
-    TIME_SLOT_NOT_FOUND(1016, HttpStatus.NOT_FOUND, "Không tìm thấy khung giờ"),
-    ;
+  TIME_SLOT_NOT_FOUND(1016, HttpStatus.NOT_FOUND, "Không tìm thấy khung giờ"),
+  GOOGLE_LOGIN_FAILED(1019, HttpStatus.BAD_REQUEST, "Đăng nhập Google thất bại"),
+  ;
 
   ErrorCode(int code, HttpStatusCode statusCode, String message) {
     this.code = code;
