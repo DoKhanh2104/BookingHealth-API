@@ -2,6 +2,7 @@ package com.bookinghealth.api.controller;
 
 import com.bookinghealth.api.dto.request.AuthenticationRequest;
 import com.bookinghealth.api.dto.request.IntrospectRequest;
+import com.bookinghealth.api.dto.request.client.SignupRequest;
 import com.bookinghealth.api.dto.response.ApiResponse;
 import com.bookinghealth.api.dto.response.AuthenticationResponse;
 import com.bookinghealth.api.dto.response.IntrospectResponse;
@@ -38,5 +39,13 @@ public class AuthenticationController {
     return ApiResponse.<IntrospectResponse>builder()
         .result(authenticationService.introspect(request))
         .build();
+  }
+
+  @PostMapping("/signup")
+  public ApiResponse<AuthenticationResponse> register(
+          @RequestBody SignupRequest request) {
+      return ApiResponse.<AuthenticationResponse>builder()
+              .result(authenticationService.register(request))
+              .build();
   }
 }

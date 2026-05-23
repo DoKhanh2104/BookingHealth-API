@@ -1,12 +1,17 @@
 package com.bookinghealth.api.service;
 
+import com.bookinghealth.api.constant.PredefinedRole;
+import com.bookinghealth.api.constant.PredefinedStatus;
 import com.bookinghealth.api.dto.request.AuthenticationRequest;
 import com.bookinghealth.api.dto.request.IntrospectRequest;
+import com.bookinghealth.api.dto.request.client.SignupRequest;
 import com.bookinghealth.api.dto.response.AuthenticationResponse;
 import com.bookinghealth.api.dto.response.IntrospectResponse;
+import com.bookinghealth.api.entity.Role;
 import com.bookinghealth.api.entity.User;
 import com.bookinghealth.api.exception.AppException;
 import com.bookinghealth.api.exception.ErrorCode;
+import com.bookinghealth.api.repository.RoleRepository;
 import com.bookinghealth.api.repository.UserRepository;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
@@ -16,9 +21,8 @@ import com.nimbusds.jwt.SignedJWT;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.StringJoiner;
-import java.util.UUID;
+import java.util.*;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -35,8 +39,9 @@ import org.springframework.util.CollectionUtils;
 public class AuthenticationService {
 
   UserRepository userRepository;
+    private final RoleRepository roleRepository;
 
-  @NonFinal
+    @NonFinal
   @Value("${jwt.signerKey}")
   protected String SIGNER_KEY;
 
@@ -120,4 +125,34 @@ public class AuthenticationService {
 
     return IntrospectResponse.builder().valid(verified && expiration.after(new Date())).build();
   }
+
+  public AuthenticationResponse register(SignupRequest request) {
+      if(userRepository.existsByEmail(request.getEmail())){
+          throw new AppException(ErrorCode.EMAIL_EXISTED);
+      }
+
+      if(userRepository.existsByPhone(request.getPhone())){
+          throw new AppException(ErrorCode.PHONE_EXISTED);
+      }
+
+      User user = User.builder()
+              .email(request.getEmail())
+              .phone(request.getPhone())
+              .password(new BCryptPasswordEncoder(10).encode(request.getPassword()))
+              .name(request.getName())
+              .status(PredefinedStatus.ACTIVE)
+              .build();
+      HashSet<Role> roles = new HashSet<>();
+      roleRepository.findByRoleName(PredefinedRole.USER_ROLE).ifPresent(roles::add);
+      user.setRoles(roles);
+
+      user.setRoles(user.getRoles());
+
+      userRepository.save(user);
+
+      String token = generateToken(user);
+
+      return AuthenticationResponse.builder().token(token).authenticated(true).build();
+  }
+
 }
