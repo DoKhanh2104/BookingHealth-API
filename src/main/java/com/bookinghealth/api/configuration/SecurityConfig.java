@@ -29,6 +29,7 @@ public class SecurityConfig {
     "/auth/logout",
     "/auth/register",
     "/auth/signup",
+    "/auth/google",
     "/auth/refresh",
     "/swagger-ui/**"
   };
