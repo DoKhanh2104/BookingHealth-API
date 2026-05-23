@@ -1,5 +1,6 @@
 package com.bookinghealth.api.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalTime;
 import java.util.List;
@@ -29,10 +30,12 @@ public class AppointmentSlot {
   @Column(name = "trangThai")
   Integer status;
 
+  @JsonIgnore
   @ManyToOne
   @JoinColumn(name = "maLichLamViec")
   WorkSchedule workSchedule;
 
+  @JsonIgnore
   @OneToMany(mappedBy = "appointmentSlot")
   List<Appointment> appointments;
 }

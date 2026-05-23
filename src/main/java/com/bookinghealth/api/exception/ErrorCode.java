@@ -24,7 +24,10 @@ public enum ErrorCode {
   SPECIALTY_EXISTED(1011, HttpStatus.BAD_REQUEST, "Tên chuyên khoa đã tòn tại"),
   SPECIALTY_NAME_REQUIRE(1012, HttpStatus.BAD_REQUEST, "Tên chuyên khoa là bắt buộc"),
   ADDRESS_REQUIRE(1013, HttpStatus.BAD_REQUEST, "Địa chỉ là bắt buộc"),
-  DOCTOR_NOT_FOUND(1014, HttpStatus.NOT_FOUND, "Không tìm thấy bác sĩ");
+  DOCTOR_NOT_FOUND(1014, HttpStatus.NOT_FOUND, "Không tìm thấy bác sĩ"),
+  TIME_SLOT_EXISTED(1015, HttpStatus.BAD_REQUEST, "Khung giờ đã tồn tại"),
+    TIME_SLOT_NOT_FOUND(1016, HttpStatus.NOT_FOUND, "Không tìm thấy khung giờ"),
+    ;
 
   ErrorCode(int code, HttpStatusCode statusCode, String message) {
     this.code = code;
