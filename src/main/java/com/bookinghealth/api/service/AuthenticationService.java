@@ -10,7 +10,9 @@ import com.bookinghealth.api.dto.request.client.ResetPasswordRequest;
 import com.bookinghealth.api.dto.request.client.SignupRequest;
 import com.bookinghealth.api.dto.request.client.DoctorSignupRequest;
 import com.bookinghealth.api.entity.Doctor;
+import com.bookinghealth.api.entity.DoctorVerification;
 import com.bookinghealth.api.repository.DoctorRepository;
+import com.bookinghealth.api.repository.DoctorVerificationRepository;
 import com.bookinghealth.api.dto.response.AuthenticationResponse;
 import com.bookinghealth.api.dto.response.IntrospectResponse;
 import com.bookinghealth.api.entity.PasswordReset;
@@ -76,6 +78,7 @@ public class AuthenticationService {
   SpecialtyRepository specialtyRepository;
   HealthDepartmentRepository healthDepartmentRepository;
   NotificationService notificationService;
+  DoctorVerificationRepository doctorVerificationRepository;
 
     @NonFinal
   @Value("${jwt.signerKey}")
@@ -302,7 +305,23 @@ public class AuthenticationService {
               .status(doctorStatus)
               .build();
 
+      for (Specialty specialty : specialties) {
+          if (specialty.getDoctors() == null) {
+              specialty.setDoctors(new java.util.LinkedHashSet<>());
+          }
+          specialty.getDoctors().add(doctor);
+      }
+
       doctorRepository.save(doctor);
+
+      // Create Verification Request
+      DoctorVerification verification = DoctorVerification.builder()
+              .doctor(doctor)
+              .status(doctorStatus)
+              .reason(null)
+              .admin(null)
+              .build();
+      doctorVerificationRepository.save(verification);
 
       // 7. Return auth token if auto-approved
       if (autoApproved) {

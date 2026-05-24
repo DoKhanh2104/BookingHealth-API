@@ -23,4 +23,18 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
       @Param("search") String search, @Param("status") Integer status, Pageable pageable);
 
   boolean existsByPracticeLicenseNumber(String practiceLicenseNumber);
+
+  @Query(
+      "SELECT DISTINCT d FROM Doctor d "
+          + "JOIN d.user u "
+          + "LEFT JOIN d.specialties s "
+          + "WHERE d.status = 1 "
+          + "AND (:specialtyId IS NULL OR s.id = :specialtyId) "
+          + "AND (:clinicId IS NULL OR d.clinic.id = :clinicId) "
+          + "AND (:search IS NULL OR u.name LIKE %:search%)")
+  Page<Doctor> searchDoctorsForClient(
+      @Param("specialtyId") Long specialtyId,
+      @Param("clinicId") Long clinicId,
+      @Param("search") String search,
+      Pageable pageable);
 }

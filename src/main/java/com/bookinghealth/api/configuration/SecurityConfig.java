@@ -50,14 +50,30 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS)
                     .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/clinics/**", "/specialties/**")
+                    .requestMatchers(HttpMethod.GET, "/clinics/**", "/specialties/**", "/doctors/**")
                     .permitAll()
                     .anyRequest()
                     .authenticated());
     http.oauth2ResourceServer(
-        oauth -> oauth.jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder())));
+        oauth -> oauth.jwt(jwtConfigurer -> jwtConfigurer
+            .decoder(jwtDecoder())
+            .jwtAuthenticationConverter(jwtAuthenticationConverter())
+        )
+    );
 
     return http.build();
+  }
+
+  @Bean
+  public org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter jwtAuthenticationConverter() {
+    org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter =
+        new org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter();
+    grantedAuthoritiesConverter.setAuthorityPrefix("");
+    
+    org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter jwtAuthenticationConverter =
+        new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter();
+    jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
+    return jwtAuthenticationConverter;
   }
 
   @Bean
