@@ -21,4 +21,6 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
           + "AND (:status IS NULL OR d.status = :status)")
   Page<DoctorAdminResponse> searchDoctorsForAdmin(
       @Param("search") String search, @Param("status") Integer status, Pageable pageable);
+
+  boolean existsByPracticeLicenseNumber(String practiceLicenseNumber);
 }

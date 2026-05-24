@@ -12,9 +12,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
-@RequestMapping("/admin/specialties")
+@RequestMapping("/specialties")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SpecialtyController {
@@ -22,6 +23,7 @@ public class SpecialtyController {
   SpecialtyService specialtyService;
 
   @PostMapping
+  @PreAuthorize("hasRole('ADMIN')")
   public ApiResponse<SpecialtyResponse> create(@RequestBody @Valid SpecialtyRequest request) {
     return ApiResponse.<SpecialtyResponse>builder()
         .result(specialtyService.createSpecialty(request))
@@ -37,6 +39,7 @@ public class SpecialtyController {
   }
 
   @PutMapping("/{id}")
+  @PreAuthorize("hasRole('ADMIN')")
   public ApiResponse<SpecialtyResponse> update(
       @PathVariable Long id, @RequestBody SpecialtyRequest request) {
     return ApiResponse.<SpecialtyResponse>builder()
@@ -45,6 +48,7 @@ public class SpecialtyController {
   }
 
   @DeleteMapping("/{id}")
+  @PreAuthorize("hasRole('ADMIN')")
   public ApiResponse<String> delete(@PathVariable Long id) {
     specialtyService.deleteSpecialty(id);
     return ApiResponse.<String>builder().result("Đã xóa chuyên khoa").build();
