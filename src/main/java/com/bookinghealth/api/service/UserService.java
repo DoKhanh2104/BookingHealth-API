@@ -129,4 +129,65 @@ public class UserService {
     Page<User> userPage = userRepository.findAll(pageable);
     return userPage.map(userMapper::toUserResponse);
   }
+
+  // Get current user profile
+  public UserResponse getMyProfile() {
+    var context = org.springframework.security.core.context.SecurityContextHolder.getContext();
+    String username = context.getAuthentication().getName();
+
+    User user = userRepository.findByPhone(username)
+        .or(() -> userRepository.findByEmail(username))
+        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+    return userMapper.toUserResponse(user);
+  }
+
+  // Update current user profile
+  public UserResponse updateMyProfile(com.bookinghealth.api.dto.request.client.UpdateProfileRequest request) {
+    var context = org.springframework.security.core.context.SecurityContextHolder.getContext();
+    String username = context.getAuthentication().getName();
+
+    User user = userRepository.findByPhone(username)
+        .or(() -> userRepository.findByEmail(username))
+        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+    if (request.getPhone() != null && !request.getPhone().trim().isEmpty()) {
+      String newPhone = request.getPhone().trim();
+      if (user.getPhone() != null && !user.getPhone().isEmpty()) {
+        if (!user.getPhone().equals(newPhone)) {
+          throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+      } else {
+        if (userRepository.existsByPhone(newPhone)) {
+          throw new AppException(ErrorCode.PHONE_EXISTED);
+        }
+        user.setPhone(newPhone);
+      }
+    }
+
+    if (request.getName() != null && !request.getName().trim().isEmpty()) {
+      user.setName(request.getName().trim());
+    }
+
+    return userMapper.toUserResponse(userRepository.save(user));
+  }
+
+  // Upload current user avatar
+  public String uploadMyAvatar(org.springframework.web.multipart.MultipartFile file) {
+    var context = org.springframework.security.core.context.SecurityContextHolder.getContext();
+    String username = context.getAuthentication().getName();
+
+    User user = userRepository.findByPhone(username)
+        .or(() -> userRepository.findByEmail(username))
+        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+    try {
+      String avatarUrl = cloudinaryService.uploadFileAndGetUrl(file);
+      user.setAvatar(avatarUrl);
+      userRepository.save(user);
+      return avatarUrl;
+    } catch (Exception e) {
+      throw new AppException(ErrorCode.UPLOAD_FILE_FAILED);
+    }
+  }
 }
