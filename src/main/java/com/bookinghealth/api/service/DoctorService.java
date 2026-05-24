@@ -1,8 +1,14 @@
 package com.bookinghealth.api.service;
 
 import com.bookinghealth.api.dto.response.admin.DoctorAdminResponse;
+import com.bookinghealth.api.dto.response.client.DoctorResponse;
+import com.bookinghealth.api.entity.DoctorVerification;
+import com.bookinghealth.api.mapper.DoctorMapper;
 import com.bookinghealth.api.repository.DoctorRepository;
+import com.bookinghealth.api.repository.DoctorVerificationRepository;
+import com.bookinghealth.api.repository.UserRepository;
 import lombok.AccessLevel;
+import org.springframework.security.core.context.SecurityContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
@@ -26,6 +32,9 @@ import lombok.extern.slf4j.Slf4j;
 public class DoctorService {
 
   DoctorRepository doctorRepository;
+  DoctorMapper doctorMapper;
+  DoctorVerificationRepository doctorVerificationRepository;
+  UserRepository userRepository;
 
   public Page<DoctorAdminResponse> getAllDoctors(
       int page, int size, String search, Integer status) {
@@ -55,5 +64,43 @@ public class DoctorService {
     }
 
     doctorRepository.save(doctor);
+
+    // Retrieve currently logged-in Admin
+    User admin = null;
+    var authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication != null && authentication.isAuthenticated()) {
+        String adminIdentifier = authentication.getName();
+        admin = userRepository.findByEmail(adminIdentifier).orElse(null);
+        if (admin == null) {
+            admin = userRepository.findByPhone(adminIdentifier).orElse(null);
+        }
+    }
+
+    // Update DoctorVerification request
+    DoctorVerification verification = doctorVerificationRepository.findByDoctor(doctor)
+        .orElseGet(() -> DoctorVerification.builder().doctor(doctor).build());
+
+    verification.setStatus(request.getStatus());
+    verification.setReason(request.getStatus() == 2 ? request.getRejectReason() : null);
+    verification.setAdmin(admin);
+
+    doctorVerificationRepository.save(verification);
+  }
+
+  public Page<DoctorResponse> getDoctorsForClient(
+      int page, int size, Long specialtyId, Long clinicId, String search) {
+    Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+    String searchParam = (search != null && !search.trim().isEmpty()) ? search.trim() : null;
+    Page<Doctor> doctors = doctorRepository.searchDoctorsForClient(specialtyId, clinicId, searchParam, pageable);
+    return doctors.map(doctorMapper::toDoctorResponse);
+  }
+
+  public DoctorResponse getDoctorByIdForClient(Long id) {
+    Doctor doctor = doctorRepository.findById(id)
+        .orElseThrow(() -> new AppException(ErrorCode.DOCTOR_NOT_FOUND));
+    if (doctor.getStatus() != 1) {
+      throw new AppException(ErrorCode.DOCTOR_NOT_FOUND);
+    }
+    return doctorMapper.toDoctorResponse(doctor);
   }
 }
