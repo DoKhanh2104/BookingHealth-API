@@ -6,6 +6,7 @@ import com.bookinghealth.api.dto.request.client.ForgotPasswordRequest;
 import com.bookinghealth.api.dto.request.client.GoogleLoginRequest;
 import com.bookinghealth.api.dto.request.client.ResetPasswordRequest;
 import com.bookinghealth.api.dto.request.client.SignupRequest;
+import com.bookinghealth.api.dto.request.client.DoctorSignupRequest;
 import com.bookinghealth.api.dto.response.ApiResponse;
 import com.bookinghealth.api.dto.response.AuthenticationResponse;
 import com.bookinghealth.api.dto.response.IntrospectResponse;
@@ -17,6 +18,7 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -50,6 +52,14 @@ public class AuthenticationController {
   public ApiResponse<AuthenticationResponse> register(@RequestBody SignupRequest request) {
     return ApiResponse.<AuthenticationResponse>builder()
         .result(authenticationService.register(request))
+        .build();
+  }
+
+  @PostMapping(value = "/signup-doctor", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+  public ApiResponse<AuthenticationResponse> registerDoctor(
+      @Valid @ModelAttribute DoctorSignupRequest request) {
+    return ApiResponse.<AuthenticationResponse>builder()
+        .result(authenticationService.registerDoctor(request))
         .build();
   }
 

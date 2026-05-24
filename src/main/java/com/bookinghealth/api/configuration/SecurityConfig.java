@@ -15,12 +15,14 @@ import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
 
   private final String[] PUBLIC_ENDPOINTS = {
@@ -29,6 +31,7 @@ public class SecurityConfig {
     "/auth/logout",
     "/auth/register",
     "/auth/signup",
+    "/auth/signup-doctor",
     "/auth/google",
     "/auth/refresh",
     "/auth/forgot-password",  // gửi email đặt lại mật khẩu
@@ -46,6 +49,8 @@ public class SecurityConfig {
         .authorizeHttpRequests(
             auth ->
                 auth.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS)
+                    .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/clinics/**", "/specialties/**")
                     .permitAll()
                     .anyRequest()
                     .authenticated());

@@ -8,6 +8,9 @@ import com.bookinghealth.api.dto.request.client.ForgotPasswordRequest;
 import com.bookinghealth.api.dto.request.client.GoogleLoginRequest;
 import com.bookinghealth.api.dto.request.client.ResetPasswordRequest;
 import com.bookinghealth.api.dto.request.client.SignupRequest;
+import com.bookinghealth.api.dto.request.client.DoctorSignupRequest;
+import com.bookinghealth.api.entity.Doctor;
+import com.bookinghealth.api.repository.DoctorRepository;
 import com.bookinghealth.api.dto.response.AuthenticationResponse;
 import com.bookinghealth.api.dto.response.IntrospectResponse;
 import com.bookinghealth.api.entity.PasswordReset;
@@ -15,9 +18,17 @@ import com.bookinghealth.api.entity.Role;
 import com.bookinghealth.api.entity.User;
 import com.bookinghealth.api.exception.AppException;
 import com.bookinghealth.api.exception.ErrorCode;
+import com.bookinghealth.api.entity.Clinic;
+import com.bookinghealth.api.entity.Specialty;
+import com.bookinghealth.api.entity.HealthDepartment;
+import com.bookinghealth.api.repository.ClinicRepository;
+import com.bookinghealth.api.repository.SpecialtyRepository;
+import com.bookinghealth.api.repository.HealthDepartmentRepository;
 import com.bookinghealth.api.repository.PasswordRepository;
 import com.bookinghealth.api.repository.RoleRepository;
 import com.bookinghealth.api.repository.UserRepository;
+import com.bookinghealth.api.service.CloudinaryService;
+import com.bookinghealth.api.service.NotificationService;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
@@ -55,10 +66,16 @@ import org.springframework.util.CollectionUtils;
 public class AuthenticationService {
 
   UserRepository userRepository;
-      RoleRepository roleRepository;
-      RestTemplate restTemplate;
+  RoleRepository roleRepository;
+  RestTemplate restTemplate;
   PasswordRepository tokenRepository;
   JavaMailSender mailSender;
+  DoctorRepository doctorRepository;
+  CloudinaryService cloudinaryService;
+  ClinicRepository clinicRepository;
+  SpecialtyRepository specialtyRepository;
+  HealthDepartmentRepository healthDepartmentRepository;
+  NotificationService notificationService;
 
     @NonFinal
   @Value("${jwt.signerKey}")
@@ -175,6 +192,131 @@ public class AuthenticationService {
       String token = generateToken(user);
 
       return AuthenticationResponse.builder().token(token).authenticated(true).build();
+  }
+
+  @org.springframework.transaction.annotation.Transactional
+  public AuthenticationResponse registerDoctor(DoctorSignupRequest request) {
+      if (userRepository.existsByEmail(request.getEmail())) {
+          throw new AppException(ErrorCode.EMAIL_EXISTED);
+      }
+
+      if (userRepository.existsByPhone(request.getPhone())) {
+          throw new AppException(ErrorCode.PHONE_EXISTED);
+      }
+
+      if (doctorRepository.existsByPracticeLicenseNumber(request.getPracticeLicenseNumber())) {
+          throw new AppException(ErrorCode.LICENSE_EXISTED);
+      }
+
+      // 1. Upload images to Cloudinary
+      String avatarUrl = null;
+      if (request.getAvatar() != null && !request.getAvatar().isEmpty()) {
+          try {
+              avatarUrl = cloudinaryService.uploadFileAndGetUrl(request.getAvatar());
+          } catch (Exception e) {
+              throw new AppException(ErrorCode.UPLOAD_FILE_FAILED);
+          }
+      }
+
+      String licenseImageUrl = null;
+      if (request.getPracticeLicenseImage() != null && !request.getPracticeLicenseImage().isEmpty()) {
+          try {
+              licenseImageUrl = cloudinaryService.uploadFileAndGetUrl(request.getPracticeLicenseImage());
+          } catch (Exception e) {
+              throw new AppException(ErrorCode.UPLOAD_FILE_FAILED);
+          }
+      }
+
+      // 2. Create User as ACTIVE with default USER role so they can log in
+      User user = User.builder()
+              .email(request.getEmail())
+              .phone(request.getPhone())
+              .password(new BCryptPasswordEncoder(10).encode(request.getPassword()))
+              .name(request.getName())
+              .avatar(avatarUrl)
+              .status(PredefinedStatus.ACTIVE)
+              .build();
+
+      HashSet<Role> roles = new HashSet<>();
+      roleRepository.findByRoleName(PredefinedRole.USER_ROLE).ifPresent(roles::add);
+      user.setRoles(roles);
+      userRepository.save(user);
+
+      // 3. Map Clinic
+      Clinic clinic = null;
+      if (request.getClinicId() != null) {
+          clinic = clinicRepository.findById(request.getClinicId())
+                  .orElseThrow(() -> new AppException(ErrorCode.CLINIC_NOT_FOUND));
+      }
+
+      // 4. Map Specialties
+      Set<Specialty> specialties = new LinkedHashSet<>();
+      if (request.getSpecialtyIds() != null && !request.getSpecialtyIds().isEmpty()) {
+          List<Specialty> foundSpecialties = specialtyRepository.findAllById(request.getSpecialtyIds());
+          specialties.addAll(foundSpecialties);
+      }
+
+      // 5. Automatic verification via HealthDepartment (SO_Y_TE table)
+      boolean autoApproved = false;
+      Optional<HealthDepartment> healthDept = healthDepartmentRepository.findById(request.getPracticeLicenseNumber());
+      if (healthDept.isPresent()) {
+          String docName = healthDept.get().getDoctorName() != null ? healthDept.get().getDoctorName().trim() : "";
+          String signupName = request.getName() != null ? request.getName().trim() : "";
+          if (docName.equalsIgnoreCase(signupName)) {
+              autoApproved = true;
+          }
+      }
+
+      int doctorStatus = autoApproved ? 1 : 0; // 1 = Approved, 0 = Pending
+
+      // 6. Upgraded to DOCTOR role if auto-approved
+      if (autoApproved) {
+          roleRepository.findByRoleName(PredefinedRole.DOCTOR_ROLE).ifPresent(user.getRoles()::add);
+          userRepository.save(user);
+
+          // Create congrats notification
+          notificationService.createNotification(
+              user,
+              "Hồ sơ Bác sĩ đã được phê duyệt",
+              "Chúc mừng Bác sĩ " + request.getName() + ", số Giấy phép hành nghề " + request.getPracticeLicenseNumber() + " đã được hệ thống tự động xác thực thành công! Bạn có thể sử dụng các chức năng quản lý lịch khám và tư vấn y tế ngay bây giờ.",
+              2 // 2 = System notification
+          );
+      } else {
+          // Create pending notification
+          notificationService.createNotification(
+              user,
+              "Hồ sơ đăng ký Bác sĩ đang chờ duyệt",
+              "Cảm ơn bạn đã đăng ký làm đối tác y tế của BookingHealth. Yêu cầu của bạn đang được Ban quản trị kiểm tra và xác minh. Chúng tôi sẽ thông báo ngay khi hồ sơ được kích hoạt.",
+              2 // 2 = System notification
+          );
+      }
+
+      Doctor doctor = Doctor.builder()
+              .user(user)
+              .clinic(clinic)
+              .specialties(specialties)
+              .practiceLicenseNumber(request.getPracticeLicenseNumber())
+              .practiceStartDate(request.getPracticeStartDate())
+              .biography(request.getBiography())
+              .practiceLicenseImage(licenseImageUrl)
+              .status(doctorStatus)
+              .build();
+
+      doctorRepository.save(doctor);
+
+      // 7. Return auth token if auto-approved
+      if (autoApproved) {
+          String token = generateToken(user);
+          return AuthenticationResponse.builder()
+                  .token(token)
+                  .authenticated(true)
+                  .build();
+      } else {
+          return AuthenticationResponse.builder()
+                  .token(null)
+                  .authenticated(false)
+                  .build();
+      }
   }
 
   public AuthenticationResponse loginWithGoogle(GoogleLoginRequest request) {
