@@ -14,11 +14,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
@@ -56,5 +52,21 @@ public class ClinicController {
     return ApiResponse.<Page<ClinicAdminResponse>>builder()
         .result(clinicService.getAllClinics(pageable))
         .build();
+  }
+
+  @PutMapping("/{id}")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ApiResponse<ClinicAdminResponse> updateClinic(
+      @PathVariable Long id, @Valid @RequestBody ClinicCreateRequest request) {
+    return ApiResponse.<ClinicAdminResponse>builder()
+        .result(clinicService.updateClinic(id, request))
+        .build();
+  }
+
+  @DeleteMapping("/{id}")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ApiResponse<Void> deleteClinic(@PathVariable Long id) {
+    clinicService.deleteClinic(id);
+    return ApiResponse.<Void>builder().build();
   }
 }

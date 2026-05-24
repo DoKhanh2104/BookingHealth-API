@@ -1,8 +1,9 @@
 package com.bookinghealth.api.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.List;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -27,10 +28,11 @@ public class WorkSchedule {
   @Column(name = "trangThai")
   Integer status;
 
+  @JsonIgnore
   @ManyToOne
   @JoinColumn(name = "maBacSi")
   Doctor doctor;
 
   @OneToMany(mappedBy = "workSchedule")
-  Set<AppointmentSlot> appointmentSlots;
+  List<AppointmentSlot> appointmentSlots;
 }

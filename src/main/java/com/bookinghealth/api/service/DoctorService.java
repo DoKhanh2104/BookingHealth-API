@@ -7,7 +7,9 @@ import com.bookinghealth.api.mapper.DoctorMapper;
 import com.bookinghealth.api.repository.DoctorRepository;
 import com.bookinghealth.api.repository.DoctorVerificationRepository;
 import com.bookinghealth.api.repository.UserRepository;
+import com.bookinghealth.api.dto.response.client.WorkScheduleResponse;
 import lombok.AccessLevel;
+
 import org.springframework.security.core.context.SecurityContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -35,6 +37,8 @@ public class DoctorService {
   DoctorMapper doctorMapper;
   DoctorVerificationRepository doctorVerificationRepository;
   UserRepository userRepository;
+  WorkScheduleService workScheduleService;
+
 
   public Page<DoctorAdminResponse> getAllDoctors(
       int page, int size, String search, Integer status) {
@@ -102,5 +106,9 @@ public class DoctorService {
       throw new AppException(ErrorCode.DOCTOR_NOT_FOUND);
     }
     return doctorMapper.toDoctorResponse(doctor);
+  }
+
+  public java.util.List<WorkScheduleResponse> getWorkSchedules(Long doctorId, String dateStr) {
+    return workScheduleService.getWorkSchedulesForClient(doctorId, dateStr);
   }
 }

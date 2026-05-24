@@ -3,10 +3,10 @@ package com.bookinghealth.api.service;
 import com.bookinghealth.api.constant.PredefinedStatusTimeSlot;
 import com.bookinghealth.api.dto.request.admin.AppointmentSlotRequest;
 import com.bookinghealth.api.dto.response.admin.AppointmentSlotResponse;
-import com.bookinghealth.api.entity.AppointmentSlot;
+import com.bookinghealth.api.entity.TimeSlotTemplate;
 import com.bookinghealth.api.exception.AppException;
 import com.bookinghealth.api.exception.ErrorCode;
-import com.bookinghealth.api.repository.AppointmentSlotRepository;
+import com.bookinghealth.api.repository.TimeSlotTemplateRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -19,51 +19,57 @@ import org.springframework.stereotype.Service;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AppointmentSlotService {
 
-    AppointmentSlotRepository appointmentSlotRepository;
+  TimeSlotTemplateRepository timeSlotTemplateRepository;
 
-    public AppointmentSlotResponse createTimeSlot (AppointmentSlotRequest request) {
+  public AppointmentSlotResponse createTimeSlot(AppointmentSlotRequest request) {
+    if (request.getStartTime().isAfter(request.getEndTime())) {
+      throw new IllegalArgumentException("Start time must be before end time");
+    }
 
-        if(request.getStartTime().isAfter(request.getEndTime())){
-            throw new IllegalArgumentException("Start time must be before end time");
-        }
+    if (timeSlotTemplateRepository.existsByStartTimeAndEndTime(
+        request.getStartTime(), request.getEndTime())) {
+      throw new AppException(ErrorCode.TIME_SLOT_EXISTED);
+    }
 
-        if(appointmentSlotRepository.existsByStartTimeAndEndTime(request.getStartTime(), request.getEndTime())) {
-            throw new AppException(ErrorCode.TIME_SLOT_EXISTED);
-        }
-
-        // Map request data to AppointmentSlot entity
-        AppointmentSlot slot = AppointmentSlot.builder()
+    TimeSlotTemplate saved =
+        timeSlotTemplateRepository.save(
+            TimeSlotTemplate.builder()
                 .startTime(request.getStartTime())
                 .endTime(request.getEndTime())
                 .status(PredefinedStatusTimeSlot.ACTIVE)
-                .build();
+                .build());
 
-        // Save entity
-        AppointmentSlot saved = appointmentSlotRepository.save(slot);
+    return toResponse(saved);
+  }
 
-        // Map entity to response DTO
-        return AppointmentSlotResponse.builder()
-                .startTime(saved.getStartTime())
-                .endTime(saved.getEndTime())
-                .build();
-    }
+  public void updateTimeSlotStatus(Long id) {
+    TimeSlotTemplate template =
+        timeSlotTemplateRepository
+            .findById(id)
+            .orElseThrow(() -> new AppException(ErrorCode.TIME_SLOT_NOT_FOUND));
 
-    public void updateTimeSlotStatus(Long id) {
-        AppointmentSlot slot = appointmentSlotRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.TIME_SLOT_NOT_FOUND));
+    template.setStatus(
+        template.getStatus() == PredefinedStatusTimeSlot.ACTIVE
+            ? PredefinedStatusTimeSlot.INACTIVE
+            : PredefinedStatusTimeSlot.ACTIVE);
 
-        slot.setStatus(slot.getStatus() == PredefinedStatusTimeSlot.ACTIVE
-                ? PredefinedStatusTimeSlot.INACTIVE
-                : PredefinedStatusTimeSlot.ACTIVE);
+    timeSlotTemplateRepository.save(template);
+  }
 
-        appointmentSlotRepository.save(slot);
-    }
+  public Page<AppointmentSlotResponse> getAllTimeSlots(Pageable pageable) {
+    return timeSlotTemplateRepository.findAll(pageable).map(this::toResponse);
+  }
 
-    public Page<AppointmentSlot> getAllTimeSlots(Pageable pageable) {
-        return appointmentSlotRepository.findAll(pageable);
-    }
+  public void deleteTimeSlot(Long id) {
+    timeSlotTemplateRepository.deleteById(id);
+  }
 
-    public void deleteTimeSlot(Long id) {
-        appointmentSlotRepository.deleteById(id);
-    }
+  private AppointmentSlotResponse toResponse(TimeSlotTemplate template) {
+    return AppointmentSlotResponse.builder()
+        .id(template.getId())
+        .startTime(template.getStartTime())
+        .endTime(template.getEndTime())
+        .status(template.getStatus())
+        .build();
+  }
 }

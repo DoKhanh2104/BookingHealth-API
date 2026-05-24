@@ -10,6 +10,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface DoctorRepository extends JpaRepository<Doctor, Long> {
 
+  java.util.Optional<Doctor> findByUser_Id(Long userId);
+
   @Query(
       "SELECT new com.bookinghealth.api.dto.response.admin.DoctorAdminResponse("
           + "d.id, u.name, u.email, u.phone, c.clinicName, d.practiceLicenseNumber, d.status, s.specialtyName, d.practiceStartDate, u.avatar) "

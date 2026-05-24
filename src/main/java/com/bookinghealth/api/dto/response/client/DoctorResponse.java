@@ -3,6 +3,7 @@ package com.bookinghealth.api.dto.response.client;
 import com.bookinghealth.api.dto.response.admin.ClinicAdminResponse;
 import com.bookinghealth.api.dto.response.admin.SpecialtyResponse;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -29,6 +30,9 @@ public class DoctorResponse {
   // Clinic and Specialties
   ClinicAdminResponse clinic;
   Set<SpecialtyResponse> specialties;
+
+  List<QualificationResponse> qualifications;
+  List<DoctorReviewResponse> reviews;
 
   // Derived fields
   Integer yearsOfExperience;

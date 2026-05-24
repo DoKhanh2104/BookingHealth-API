@@ -19,4 +19,5 @@ public class UserResponse {
   String avatar;
   int status;
   Set<RoleResponse> roles;
+  Long doctorId;
 }

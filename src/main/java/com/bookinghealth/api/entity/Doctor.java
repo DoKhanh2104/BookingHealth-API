@@ -57,6 +57,12 @@ public class Doctor {
   List<DoctorReview> reviews;
 
   @OneToMany(mappedBy = "doctor")
+  List<Qualification> qualifications;
+
+  @OneToMany(mappedBy = "doctor")
+  List<PriceHistory> priceHistories;
+
+  @OneToMany(mappedBy = "doctor")
   List<WorkSchedule> workSchedules;
 
   @OneToMany(mappedBy = "doctor")

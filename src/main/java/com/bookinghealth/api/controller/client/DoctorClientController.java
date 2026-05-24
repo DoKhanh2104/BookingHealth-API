@@ -35,4 +35,13 @@ public class DoctorClientController {
         .result(doctorService.getDoctorByIdForClient(id))
         .build();
   }
+
+  @GetMapping("/{id}/work-schedules")
+  public ApiResponse<java.util.List<com.bookinghealth.api.dto.response.client.WorkScheduleResponse>>
+      getWorkSchedules(@PathVariable Long id, @RequestParam String date) {
+    return ApiResponse
+        .<java.util.List<com.bookinghealth.api.dto.response.client.WorkScheduleResponse>>builder()
+        .result(doctorService.getWorkSchedules(id, date))
+        .build();
+  }
 }

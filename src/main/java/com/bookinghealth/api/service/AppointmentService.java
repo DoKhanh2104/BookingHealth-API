@@ -45,9 +45,10 @@ public class AppointmentService {
                     : "";
 
             String timeSlot = "";
-            if (appointment.getAppointmentSlot() != null) {
-                AppointmentSlot slot = appointment.getAppointmentSlot();
-                timeSlot = slot.getStartTime() + " - " + slot.getEndTime();
+            if (appointment.getAppointmentSlot() != null
+                && appointment.getAppointmentSlot().getTimeSlotTemplate() != null) {
+                var template = appointment.getAppointmentSlot().getTimeSlotTemplate();
+                timeSlot = template.getStartTime() + " - " + template.getEndTime();
             }
 
             String statusStr = mapStatusToString(appointment.getStatus());

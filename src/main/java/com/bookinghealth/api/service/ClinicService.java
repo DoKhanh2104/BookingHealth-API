@@ -24,6 +24,9 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import com.bookinghealth.api.exception.AppException;
+import com.bookinghealth.api.exception.ErrorCode;
+import com.bookinghealth.api.entity.Doctor;
 
 @Slf4j
 @Service
@@ -199,5 +202,42 @@ public class ClinicService {
         .latitude(clinic.getLatitude())
         .soLuongBacSi(clinic.getDoctors() != null ? clinic.getDoctors().size() : 0)
         .build());
+  }
+
+  @Transactional
+  public ClinicAdminResponse updateClinic(Long id, ClinicCreateRequest request) {
+    Clinic clinic = clinicRepository.findById(id)
+        .orElseThrow(() -> new AppException(ErrorCode.CLINIC_NOT_FOUND));
+
+    clinic.setClinicName(request.getName());
+    clinic.setAddress(request.getAddress());
+    clinic.setLongitude(request.getLongitude());
+    clinic.setLatitude(request.getLatitude());
+
+    clinicRepository.save(clinic);
+
+    return ClinicAdminResponse.builder()
+        .id(clinic.getId())
+        .clinicName(clinic.getClinicName())
+        .address(clinic.getAddress())
+        .longitude(clinic.getLongitude())
+        .latitude(clinic.getLatitude())
+        .soLuongBacSi(clinic.getDoctors() != null ? clinic.getDoctors().size() : 0)
+        .build();
+  }
+
+  @Transactional
+  public void deleteClinic(Long id) {
+    Clinic clinic = clinicRepository.findById(id)
+        .orElseThrow(() -> new AppException(ErrorCode.CLINIC_NOT_FOUND));
+
+    // Dissociate doctors from the clinic to avoid constraint violation
+    if (clinic.getDoctors() != null) {
+      for (Doctor doctor : clinic.getDoctors()) {
+        doctor.setClinic(null);
+      }
+    }
+
+    clinicRepository.delete(clinic);
   }
 }

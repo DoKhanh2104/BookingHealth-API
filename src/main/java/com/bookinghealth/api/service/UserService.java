@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -131,6 +132,7 @@ public class UserService {
   }
 
   // Get current user profile
+  @Transactional(readOnly = true)
   public UserResponse getMyProfile() {
     var context = org.springframework.security.core.context.SecurityContextHolder.getContext();
     String username = context.getAuthentication().getName();

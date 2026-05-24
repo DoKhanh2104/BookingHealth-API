@@ -3,7 +3,6 @@ package com.bookinghealth.api.controller.admin;
 import com.bookinghealth.api.dto.request.admin.AppointmentSlotRequest;
 import com.bookinghealth.api.dto.response.ApiResponse;
 import com.bookinghealth.api.dto.response.admin.AppointmentSlotResponse;
-import com.bookinghealth.api.entity.AppointmentSlot;
 import com.bookinghealth.api.service.AppointmentSlotService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -18,34 +17,31 @@ import org.springframework.web.bind.annotation.*;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AppointmentSlotController {
 
-    AppointmentSlotService appointmentSlotService;
+  AppointmentSlotService appointmentSlotService;
 
-    @PostMapping
-    public ApiResponse<AppointmentSlotResponse> createTimeSlot(@RequestBody AppointmentSlotRequest request) {
-        return ApiResponse.<AppointmentSlotResponse>builder()
-                .result(appointmentSlotService.createTimeSlot(request))
-                .build();
-    }
-    
-    @PatchMapping("/{id}")
-    public ApiResponse<Void> updateTimeSlot(@PathVariable Long id) {
-        appointmentSlotService.updateTimeSlotStatus(id);
-        return ApiResponse.<Void>builder()
-                .build();
-    }
+  @PostMapping
+  public ApiResponse<AppointmentSlotResponse> createTimeSlot(@RequestBody AppointmentSlotRequest request) {
+    return ApiResponse.<AppointmentSlotResponse>builder()
+        .result(appointmentSlotService.createTimeSlot(request))
+        .build();
+  }
 
-    @GetMapping
-    public ApiResponse<Page<AppointmentSlot>> getTimeSlots(Pageable pageable) {
-        return ApiResponse.<Page<AppointmentSlot>>builder()
-                .result(appointmentSlotService.getAllTimeSlots(pageable))
-                .build();
-    }
+  @PatchMapping("/{id}")
+  public ApiResponse<Void> updateTimeSlot(@PathVariable Long id) {
+    appointmentSlotService.updateTimeSlotStatus(id);
+    return ApiResponse.<Void>builder().build();
+  }
 
-    @DeleteMapping("/{id}")
-    public ApiResponse<Void> deleteTimeSlot(@PathVariable Long id){
-        appointmentSlotService.deleteTimeSlot(id);
-        return ApiResponse.<Void>builder()
-                .build();
-    }
+  @GetMapping
+  public ApiResponse<Page<AppointmentSlotResponse>> getTimeSlots(Pageable pageable) {
+    return ApiResponse.<Page<AppointmentSlotResponse>>builder()
+        .result(appointmentSlotService.getAllTimeSlots(pageable))
+        .build();
+  }
 
+  @DeleteMapping("/{id}")
+  public ApiResponse<Void> deleteTimeSlot(@PathVariable Long id) {
+    appointmentSlotService.deleteTimeSlot(id);
+    return ApiResponse.<Void>builder().build();
+  }
 }
