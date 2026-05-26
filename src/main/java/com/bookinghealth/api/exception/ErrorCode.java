@@ -34,7 +34,9 @@ public enum ErrorCode {
     TOKEN_NOT_FOUND(1020, HttpStatus.NOT_FOUND, "Đường dẫn không hợp lệ"),
     TOKEN_EXPIRATION(1021, HttpStatus.BAD_REQUEST, "Đường dẫn lấy lại mật khẩu đã hết hạn"),
     LICENSE_EXISTED(1022, HttpStatus.BAD_REQUEST, "Số giấy phép hành nghề đã được đăng ký"),
-    CLINIC_NOT_FOUND(1024, HttpStatus.NOT_FOUND, "Không tìm thấy phòng khám")
+    CLINIC_NOT_FOUND(1024, HttpStatus.NOT_FOUND, "Không tìm thấy phòng khám"),
+    APPOINTMENT_NOT_FOUND(1026, HttpStatus.NOT_FOUND, "Không tìm thấy lịch hẹn"),
+    INVALID_APPOINTMENT_STATUS(1027, HttpStatus.BAD_REQUEST, "Trạng thái lịch hẹn không hợp lệ")
   ;
 
   ErrorCode(int code, HttpStatusCode statusCode, String message) {

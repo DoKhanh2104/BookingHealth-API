@@ -38,6 +38,7 @@ public class DoctorService {
   DoctorVerificationRepository doctorVerificationRepository;
   UserRepository userRepository;
   WorkScheduleService workScheduleService;
+  com.bookinghealth.api.repository.DoctorReviewRepository doctorReviewRepository;
 
 
   public Page<DoctorAdminResponse> getAllDoctors(
@@ -110,5 +111,13 @@ public class DoctorService {
 
   public java.util.List<WorkScheduleResponse> getWorkSchedules(Long doctorId, String dateStr) {
     return workScheduleService.getWorkSchedulesForClient(doctorId, dateStr);
+  }
+
+  public Page<com.bookinghealth.api.dto.response.client.DoctorReviewResponse> getReviewsForDoctor(Long doctorId, Pageable pageable) {
+    if (!doctorRepository.existsById(doctorId)) {
+      throw new AppException(ErrorCode.DOCTOR_NOT_FOUND);
+    }
+    return doctorReviewRepository.findByDoctorId(doctorId, pageable)
+        .map(doctorMapper::toDoctorReviewResponse);
   }
 }

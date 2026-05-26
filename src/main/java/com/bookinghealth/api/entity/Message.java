@@ -3,7 +3,7 @@ package com.bookinghealth.api.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -32,5 +32,5 @@ public class Message {
   String content;
 
   @Column(name = "thoiGianGui")
-  LocalTime sendTime;
+  LocalDateTime sendTime;
 }

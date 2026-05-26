@@ -27,6 +27,10 @@ public class ChatRoom {
   @JoinColumn(name = "maBacSi")
   Doctor doctor;
 
+  @OneToOne
+  @JoinColumn(name = "maLichHen")
+  Appointment appointment;
+
   @Column(name = "trangThai")
   Integer status;
 }
