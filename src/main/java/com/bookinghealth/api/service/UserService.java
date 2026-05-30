@@ -131,6 +131,31 @@ public class UserService {
     return userPage.map(userMapper::toUserResponse);
   }
 
+  public Page<UserResponse> getPatientsForAdmin(String search, Pageable pageable) {
+    String searchParam = (search != null && !search.trim().isEmpty()) ? search.trim() : null;
+    Page<User> patientPage = userRepository.findPatientsForAdmin(searchParam, pageable);
+    return patientPage.map(userMapper::toUserResponse);
+  }
+
+  @Transactional
+  public UserResponse toggleLockPatient(Long id) {
+    User user = userRepository.findById(id)
+        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+    boolean isPatient = user.getRoles().stream()
+        .anyMatch(r -> "USER".equals(r.getRoleName()));
+    if (!isPatient) {
+      throw new AppException(ErrorCode.UNAUTHORIZED);
+    }
+
+    int nextStatus = user.getStatus().equals(PredefinedStatus.ACTIVE)
+        ? PredefinedStatus.BLOCKED
+        : PredefinedStatus.ACTIVE;
+    user.setStatus(nextStatus);
+
+    return userMapper.toUserResponse(userRepository.save(user));
+  }
+
   // Get current user profile
   @Transactional(readOnly = true)
   public UserResponse getMyProfile() {

@@ -47,4 +47,17 @@ public class DoctorAdminController {
         .result("Cập nhật trạng thái bác sĩ thành công")
         .build();
   }
+
+  @GetMapping("/work-schedules")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ApiResponse<Page<com.bookinghealth.api.dto.response.admin.WorkScheduleAdminResponse>> getWorkSchedules(
+      @RequestParam String date,
+      @RequestParam(required = false) Long clinicId,
+      @RequestParam(required = false) Long doctorId,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size) {
+    return ApiResponse.<Page<com.bookinghealth.api.dto.response.admin.WorkScheduleAdminResponse>>builder()
+        .result(doctorService.getWorkSchedulesForAdmin(date, clinicId, doctorId, org.springframework.data.domain.PageRequest.of(page, size)))
+        .build();
+  }
 }

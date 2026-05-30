@@ -39,4 +39,18 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
       @Param("clinicId") Long clinicId,
       @Param("search") String search,
       Pageable pageable);
+
+  @Query(
+      value = "SELECT d FROM Doctor d JOIN FETCH d.user u LEFT JOIN FETCH d.clinic c "
+          + "WHERE d.status = 1 "
+          + "AND (:clinicId IS NULL OR c.id = :clinicId) "
+          + "AND (:doctorId IS NULL OR d.id = :doctorId)",
+      countQuery = "SELECT count(d) FROM Doctor d WHERE d.status = 1 "
+          + "AND (:clinicId IS NULL OR d.clinic.id = :clinicId) "
+          + "AND (:doctorId IS NULL OR d.id = :doctorId)"
+  )
+  Page<Doctor> findActiveDoctorsForSchedule(
+      @Param("clinicId") Long clinicId,
+      @Param("doctorId") Long doctorId,
+      Pageable pageable);
 }

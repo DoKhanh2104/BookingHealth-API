@@ -113,6 +113,11 @@ public class DoctorService {
     return workScheduleService.getWorkSchedulesForClient(doctorId, dateStr);
   }
 
+  public Page<com.bookinghealth.api.dto.response.admin.WorkScheduleAdminResponse> getWorkSchedulesForAdmin(
+      String dateStr, Long clinicId, Long doctorId, Pageable pageable) {
+    return workScheduleService.getWorkSchedulesForAdmin(dateStr, clinicId, doctorId, pageable);
+  }
+
   public Page<com.bookinghealth.api.dto.response.client.DoctorReviewResponse> getReviewsForDoctor(Long doctorId, Pageable pageable) {
     if (!doctorRepository.existsById(doctorId)) {
       throw new AppException(ErrorCode.DOCTOR_NOT_FOUND);

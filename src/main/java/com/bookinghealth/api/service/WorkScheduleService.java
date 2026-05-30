@@ -16,6 +16,9 @@ import com.bookinghealth.api.repository.DoctorRepository;
 import com.bookinghealth.api.repository.TimeSlotTemplateRepository;
 import com.bookinghealth.api.repository.UserRepository;
 import com.bookinghealth.api.repository.WorkScheduleRepository;
+import com.bookinghealth.api.dto.response.admin.WorkScheduleAdminResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -167,5 +170,39 @@ public class WorkScheduleService {
     return doctorRepository
         .findByUser_Id(user.getId())
         .orElseThrow(() -> new AppException(ErrorCode.DOCTOR_NOT_FOUND));
+  }
+
+  @Transactional
+  public Page<WorkScheduleAdminResponse> getWorkSchedulesForAdmin(
+      String dateStr, Long clinicId, Long doctorId, Pageable pageable) {
+    LocalDate date = LocalDate.parse(dateStr);
+    Page<Doctor> doctorsPage = doctorRepository.findActiveDoctorsForSchedule(clinicId, doctorId, pageable);
+    java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm");
+
+    return doctorsPage.map(doctor -> {
+      WorkSchedule schedule = getOrCreateWorkSchedule(doctor.getId(), date);
+      ensureScheduleSlots(schedule);
+
+      List<AppointmentSlot> activeSlots = appointmentSlotRepository.findByWorkScheduleIdWithActiveTemplates(
+          schedule.getId(), PredefinedStatusTimeSlot.ACTIVE);
+
+      List<String> activeTimeSlots = activeSlots.stream()
+          .filter(slot -> slot.getStatus() == PredefinedStatusTimeSlot.ACTIVE)
+          .map(slot -> {
+            TimeSlotTemplate template = slot.getTimeSlotTemplate();
+            return template.getStartTime().format(formatter) + " - " + template.getEndTime().format(formatter);
+          })
+          .collect(Collectors.toList());
+
+      return WorkScheduleAdminResponse.builder()
+          .id(schedule.getId())
+          .doctorId(doctor.getId())
+          .doctorName(doctor.getUser().getName())
+          .clinicId(doctor.getClinic() != null ? doctor.getClinic().getId() : null)
+          .clinicName(doctor.getClinic() != null ? doctor.getClinic().getClinicName() : "")
+          .date(date)
+          .timeSlots(activeTimeSlots)
+          .build();
+    });
   }
 }

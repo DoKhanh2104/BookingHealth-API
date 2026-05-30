@@ -381,4 +381,10 @@ public class AppointmentService {
                 .or(() -> userRepository.findByPhone(identifier))
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
+
+    public Page<com.bookinghealth.api.dto.response.client.AppointmentResponse> getPatientAppointmentsForAdmin(
+            Long patientId, Pageable pageable) {
+        Page<Appointment> page = appointmentRepository.findByUserId(patientId, pageable);
+        return page.map(appointmentMapper::toAppointmentResponse);
+    }
 }
