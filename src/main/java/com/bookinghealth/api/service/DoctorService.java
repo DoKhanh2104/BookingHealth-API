@@ -66,6 +66,12 @@ public class DoctorService {
       if (request.getRejectReason() != null && !request.getRejectReason().trim().isEmpty()) {
         log.info("Hồ sơ bác sĩ ID {} bị từ chối với lý do: {}", doctorId, request.getRejectReason());
       }
+    } else if (request.getStatus() == 3) { // 3 là LOCKED (Khóa)
+      doctor.setStatus(3); // Hoặc bạn có thể giữ nguyên status hiện tại nếu chỉ muốn khóa User
+      User user = doctor.getUser();
+      if (user != null) {
+        user.setStatus(0); // 0 là Khóa (Ngừng hoạt động)
+      }
     }
 
     doctorRepository.save(doctor);

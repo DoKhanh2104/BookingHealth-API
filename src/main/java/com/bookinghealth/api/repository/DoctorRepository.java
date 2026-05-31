@@ -2,6 +2,8 @@ package com.bookinghealth.api.repository;
 
 import com.bookinghealth.api.dto.response.admin.DoctorAdminResponse;
 import com.bookinghealth.api.entity.Doctor;
+import java.time.LocalDate;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -53,4 +55,26 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
       @Param("clinicId") Long clinicId,
       @Param("doctorId") Long doctorId,
       Pageable pageable);
+
+  // ─────────────────────────────────────────────────────────────────────
+  // Dashboard queries
+  // ─────────────────────────────────────────────────────────────────────
+
+  /**
+   * Đếm bác sĩ PENDING (status = 0) chưa được duyệt.
+   */
+  long countByStatus(Integer status);
+
+  /**
+   * Đếm bác sĩ mới đăng ký (practiceStartDate trong khoảng).
+   * status = 0 (PENDING) hoặc 1 (APPROVED) — lấy tất cả để tính "bác sĩ mới trong kỳ".
+   */
+  @Query("SELECT COUNT(d) FROM Doctor d WHERE d.practiceStartDate BETWEEN :from AND :to")
+  long countNewDoctorsByDateRange(@Param("from") LocalDate from, @Param("to") LocalDate to);
+
+  /**
+   * Bác sĩ đang chờ phê duyệt (status = 0), lấy kèm thông tin user và specialty.
+   */
+  @Query("SELECT d FROM Doctor d JOIN FETCH d.user u LEFT JOIN FETCH d.specialties s WHERE d.status = 0 ORDER BY d.practiceStartDate DESC")
+  List<Doctor> findPendingDoctors();
 }

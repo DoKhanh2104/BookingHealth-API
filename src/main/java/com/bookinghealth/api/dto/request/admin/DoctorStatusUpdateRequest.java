@@ -19,7 +19,7 @@ public class DoctorStatusUpdateRequest {
 
   @NotNull(message = "Status is required")
   @Min(value = 1, message = "Status must be 1 (VERIFIED) or 2 (REJECTED)")
-  @Max(value = 2, message = "Status must be 1 (VERIFIED) or 2 (REJECTED)")
+  @Max(value = 3, message = "Status must be 1 (VERIFIED), 2 (REJECTED), or 3 (LOCKED)")
   Integer status;
 
   String rejectReason;

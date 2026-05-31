@@ -9,11 +9,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface UserRepository extends JpaRepository<User, Long> {
+
   boolean existsByPhone(String phone);
 
   boolean existsByEmail(String email);
 
-  // Return true if there is another user (not the given id) with the given email
   boolean existsByEmailAndIdNot(String email, Long id);
 
   Optional<User> findByPhone(String phone);
@@ -35,4 +35,22 @@ public interface UserRepository extends JpaRepository<User, Long> {
   Page<User> findPatientsForAdmin(
       @Param("search") String search,
       Pageable pageable);
+
+  // ─────────────────────────────────────────────────────────────────────
+  // Dashboard queries
+  // ─────────────────────────────────────────────────────────────────────
+
+  /**
+   * Đếm tổng số user có role 'USER' (bệnh nhân) — không bao gồm ADMIN/DOCTOR.
+   */
+  @Query("SELECT COUNT(DISTINCT u) FROM User u JOIN u.roles r WHERE r.roleName = 'USER' AND NOT EXISTS (SELECT 1 FROM u.roles r2 WHERE r2.roleName IN ('DOCTOR', 'ADMIN'))")
+  long countAllPatients();
+
+  /**
+   * Đếm user mới đăng ký trong khoảng ngày.
+   * Vì User không có createdAt, dùng ID thay thế tạm — hoặc nếu có thể, thêm createdAt vào entity.
+   * Hiện tại: đếm tất cả user có role USER để tính tổng.
+   */
+  @Query("SELECT COUNT(DISTINCT u) FROM User u JOIN u.roles r WHERE r.roleName = 'USER' AND NOT EXISTS (SELECT 1 FROM u.roles r2 WHERE r2.roleName IN ('DOCTOR', 'ADMIN')) AND u.id > :sinceId")
+  long countNewPatientsSinceId(@Param("sinceId") Long sinceId);
 }
