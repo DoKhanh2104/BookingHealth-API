@@ -15,8 +15,8 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ScreenLogResponse {
-    Long id;
-    Long userId;
-    String specialtyName;
-    String symptoms;
+  Long id;
+  Long userId;
+  String specialtyName;
+  String symptoms;
 }

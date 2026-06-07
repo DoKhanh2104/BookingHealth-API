@@ -139,18 +139,18 @@ public class UserService {
 
   @Transactional
   public UserResponse toggleLockPatient(Long id) {
-    User user = userRepository.findById(id)
-        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    User user =
+        userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-    boolean isPatient = user.getRoles().stream()
-        .anyMatch(r -> "USER".equals(r.getRoleName()));
+    boolean isPatient = user.getRoles().stream().anyMatch(r -> "USER".equals(r.getRoleName()));
     if (!isPatient) {
       throw new AppException(ErrorCode.UNAUTHORIZED);
     }
 
-    int nextStatus = user.getStatus().equals(PredefinedStatus.ACTIVE)
-        ? PredefinedStatus.BLOCKED
-        : PredefinedStatus.ACTIVE;
+    int nextStatus =
+        user.getStatus().equals(PredefinedStatus.ACTIVE)
+            ? PredefinedStatus.BLOCKED
+            : PredefinedStatus.ACTIVE;
     user.setStatus(nextStatus);
 
     return userMapper.toUserResponse(userRepository.save(user));
@@ -162,21 +162,26 @@ public class UserService {
     var context = org.springframework.security.core.context.SecurityContextHolder.getContext();
     String username = context.getAuthentication().getName();
 
-    User user = userRepository.findByPhone(username)
-        .or(() -> userRepository.findByEmail(username))
-        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    User user =
+        userRepository
+            .findByPhone(username)
+            .or(() -> userRepository.findByEmail(username))
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
     return userMapper.toUserResponse(user);
   }
 
   // Update current user profile
-  public UserResponse updateMyProfile(com.bookinghealth.api.dto.request.client.UpdateProfileRequest request) {
+  public UserResponse updateMyProfile(
+      com.bookinghealth.api.dto.request.client.UpdateProfileRequest request) {
     var context = org.springframework.security.core.context.SecurityContextHolder.getContext();
     String username = context.getAuthentication().getName();
 
-    User user = userRepository.findByPhone(username)
-        .or(() -> userRepository.findByEmail(username))
-        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    User user =
+        userRepository
+            .findByPhone(username)
+            .or(() -> userRepository.findByEmail(username))
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
     if (request.getPhone() != null && !request.getPhone().trim().isEmpty()) {
       String newPhone = request.getPhone().trim();
@@ -204,9 +209,11 @@ public class UserService {
     var context = org.springframework.security.core.context.SecurityContextHolder.getContext();
     String username = context.getAuthentication().getName();
 
-    User user = userRepository.findByPhone(username)
-        .or(() -> userRepository.findByEmail(username))
-        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    User user =
+        userRepository
+            .findByPhone(username)
+            .or(() -> userRepository.findByEmail(username))
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
     try {
       String avatarUrl = cloudinaryService.uploadFileAndGetUrl(file);

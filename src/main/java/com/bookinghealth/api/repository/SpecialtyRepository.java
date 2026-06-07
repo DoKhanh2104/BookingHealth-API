@@ -7,5 +7,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface SpecialtyRepository extends JpaRepository<Specialty, Long> {
   boolean existsBySpecialtyName(String name);
+
   java.util.Optional<Specialty> findFirstBySpecialtyNameContainingIgnoreCase(String name);
 }

@@ -1,6 +1,5 @@
 package com.bookinghealth.api.dto.response.admin;
 
-
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 

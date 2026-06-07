@@ -46,12 +46,17 @@ public class DoctorClientController {
   }
 
   @GetMapping("/{id}/reviews")
-  public ApiResponse<org.springframework.data.domain.Page<com.bookinghealth.api.dto.response.client.DoctorReviewResponse>>
+  public ApiResponse<
+          org.springframework.data.domain.Page<
+              com.bookinghealth.api.dto.response.client.DoctorReviewResponse>>
       getDoctorReviews(
           @PathVariable Long id,
-          @org.springframework.data.web.PageableDefault(size = 10) org.springframework.data.domain.Pageable pageable) {
+          @org.springframework.data.web.PageableDefault(size = 10)
+              org.springframework.data.domain.Pageable pageable) {
     return ApiResponse
-        .<org.springframework.data.domain.Page<com.bookinghealth.api.dto.response.client.DoctorReviewResponse>>builder()
+        .<org.springframework.data.domain.Page<
+                com.bookinghealth.api.dto.response.client.DoctorReviewResponse>>
+            builder()
         .result(doctorService.getReviewsForDoctor(id, pageable))
         .build();
   }

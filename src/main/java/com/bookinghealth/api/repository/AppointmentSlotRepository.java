@@ -17,7 +17,8 @@ public interface AppointmentSlotRepository extends JpaRepository<AppointmentSlot
           + "AND t.status = :templateStatus "
           + "ORDER BY t.startTime ASC")
   List<AppointmentSlot> findByWorkScheduleIdWithActiveTemplates(
-      @Param("workScheduleId") Long workScheduleId, @Param("templateStatus") Integer templateStatus);
+      @Param("workScheduleId") Long workScheduleId,
+      @Param("templateStatus") Integer templateStatus);
 
   @Query(
       "SELECT s FROM AppointmentSlot s "
@@ -25,4 +26,6 @@ public interface AppointmentSlotRepository extends JpaRepository<AppointmentSlot
           + "JOIN FETCH s.workSchedule w "
           + "WHERE s.id = :id")
   java.util.Optional<AppointmentSlot> findByIdWithDetails(@Param("id") Long id);
+
+  List<AppointmentSlot> findByWorkSchedule_Id(Long workScheduleId);
 }

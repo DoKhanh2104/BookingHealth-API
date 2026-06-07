@@ -11,10 +11,10 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CompleteAppointmentRequest {
 
-    @NotBlank(message = "Chẩn đoán y khoa không được để trống")
-    String diagnosis;
+  @NotBlank(message = "Chẩn đoán y khoa không được để trống")
+  String diagnosis;
 
-    String medicine;
+  String medicine;
 
-    String attachment;
+  String attachment;
 }

@@ -33,14 +33,19 @@ public class DoctorReviewService {
   public DoctorReviewResponse createReview(CreateReviewRequest request) {
     User currentUser = getCurrentUser();
 
-    Appointment appointment = appointmentRepository.findById(request.getAppointmentId())
-        .orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_FOUND));
+    Appointment appointment =
+        appointmentRepository
+            .findById(request.getAppointmentId())
+            .orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_FOUND));
 
-    Doctor doctor = doctorRepository.findById(request.getDoctorId())
-        .orElseThrow(() -> new AppException(ErrorCode.DOCTOR_NOT_FOUND));
+    Doctor doctor =
+        doctorRepository
+            .findById(request.getDoctorId())
+            .orElseThrow(() -> new AppException(ErrorCode.DOCTOR_NOT_FOUND));
 
     // Verify appointment belongs to user
-    if (appointment.getUser() == null || !appointment.getUser().getId().equals(currentUser.getId())) {
+    if (appointment.getUser() == null
+        || !appointment.getUser().getId().equals(currentUser.getId())) {
       throw new AppException(ErrorCode.UNAUTHORIZED);
     }
 
@@ -54,13 +59,14 @@ public class DoctorReviewService {
       throw new AppException(ErrorCode.INVALID_APPOINTMENT_STATUS);
     }
 
-    DoctorReview review = DoctorReview.builder()
-        .rating(request.getRating())
-        .comment(request.getComment())
-        .doctor(doctor)
-        .user(currentUser)
-        .appointment(appointment)
-        .build();
+    DoctorReview review =
+        DoctorReview.builder()
+            .rating(request.getRating())
+            .comment(request.getComment())
+            .doctor(doctor)
+            .user(currentUser)
+            .appointment(appointment)
+            .build();
 
     DoctorReview saved = doctorReviewRepository.save(review);
 
@@ -69,7 +75,10 @@ public class DoctorReviewService {
         .patientName(currentUser.getName())
         .rating(saved.getRating())
         .comment(saved.getComment())
-        .date(appointment.getExpectedExaminationDate() != null ? appointment.getExpectedExaminationDate().toString() : "")
+        .date(
+            appointment.getExpectedExaminationDate() != null
+                ? appointment.getExpectedExaminationDate().toString()
+                : "")
         .build();
   }
 
@@ -79,7 +88,8 @@ public class DoctorReviewService {
       throw new AppException(ErrorCode.UNAUTHENTICATED);
     }
     String identifier = authentication.getName();
-    return userRepository.findByEmail(identifier)
+    return userRepository
+        .findByEmail(identifier)
         .or(() -> userRepository.findByPhone(identifier))
         .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
   }

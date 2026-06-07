@@ -3,9 +3,12 @@ package com.bookinghealth.api.service;
 import com.bookinghealth.api.dto.request.admin.ClinicCreateRequest;
 import com.bookinghealth.api.dto.request.admin.GeocodingRequest;
 import com.bookinghealth.api.dto.request.admin.HealthDepartmentRequest;
-import com.bookinghealth.api.dto.response.admin.GeocodingResponse;
 import com.bookinghealth.api.dto.response.admin.ClinicAdminResponse;
+import com.bookinghealth.api.dto.response.admin.GeocodingResponse;
 import com.bookinghealth.api.entity.Clinic;
+import com.bookinghealth.api.entity.Doctor;
+import com.bookinghealth.api.exception.AppException;
+import com.bookinghealth.api.exception.ErrorCode;
 import com.bookinghealth.api.repository.ClinicRepository;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
@@ -24,9 +27,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
-import com.bookinghealth.api.exception.AppException;
-import com.bookinghealth.api.exception.ErrorCode;
-import com.bookinghealth.api.entity.Doctor;
 
 @Slf4j
 @Service
@@ -194,20 +194,26 @@ public class ClinicService {
   }
 
   public Page<ClinicAdminResponse> getAllClinics(Pageable pageable) {
-    return clinicRepository.findAll(pageable).map(clinic -> ClinicAdminResponse.builder()
-        .id(clinic.getId())
-        .clinicName(clinic.getClinicName())
-        .address(clinic.getAddress())
-        .longitude(clinic.getLongitude())
-        .latitude(clinic.getLatitude())
-        .soLuongBacSi(clinic.getDoctors() != null ? clinic.getDoctors().size() : 0)
-        .build());
+    return clinicRepository
+        .findAll(pageable)
+        .map(
+            clinic ->
+                ClinicAdminResponse.builder()
+                    .id(clinic.getId())
+                    .clinicName(clinic.getClinicName())
+                    .address(clinic.getAddress())
+                    .longitude(clinic.getLongitude())
+                    .latitude(clinic.getLatitude())
+                    .soLuongBacSi(clinic.getDoctors() != null ? clinic.getDoctors().size() : 0)
+                    .build());
   }
 
   @Transactional
   public ClinicAdminResponse updateClinic(Long id, ClinicCreateRequest request) {
-    Clinic clinic = clinicRepository.findById(id)
-        .orElseThrow(() -> new AppException(ErrorCode.CLINIC_NOT_FOUND));
+    Clinic clinic =
+        clinicRepository
+            .findById(id)
+            .orElseThrow(() -> new AppException(ErrorCode.CLINIC_NOT_FOUND));
 
     clinic.setClinicName(request.getName());
     clinic.setAddress(request.getAddress());
@@ -228,8 +234,10 @@ public class ClinicService {
 
   @Transactional
   public void deleteClinic(Long id) {
-    Clinic clinic = clinicRepository.findById(id)
-        .orElseThrow(() -> new AppException(ErrorCode.CLINIC_NOT_FOUND));
+    Clinic clinic =
+        clinicRepository
+            .findById(id)
+            .orElseThrow(() -> new AppException(ErrorCode.CLINIC_NOT_FOUND));
 
     // Dissociate doctors from the clinic to avoid constraint violation
     if (clinic.getDoctors() != null) {

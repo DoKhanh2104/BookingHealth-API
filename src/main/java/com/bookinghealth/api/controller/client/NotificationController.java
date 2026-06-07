@@ -41,8 +41,6 @@ public class NotificationController {
 
   @GetMapping("/me/unread-count")
   public ApiResponse<Long> getUnreadCount() {
-    return ApiResponse.<Long>builder()
-        .result(notificationService.getUnreadCount())
-        .build();
+    return ApiResponse.<Long>builder().result(notificationService.getUnreadCount()).build();
   }
 }

@@ -33,16 +33,15 @@ public class PatientAdminController {
 
   @PatchMapping("/{id}/toggle-lock")
   public ApiResponse<UserResponse> toggleLockPatient(@PathVariable Long id) {
-    return ApiResponse.<UserResponse>builder()
-        .result(userService.toggleLockPatient(id))
-        .build();
+    return ApiResponse.<UserResponse>builder().result(userService.toggleLockPatient(id)).build();
   }
 
   @GetMapping("/{id}/appointments")
-  public ApiResponse<Page<com.bookinghealth.api.dto.response.client.AppointmentResponse>> getPatientAppointments(
-      @PathVariable Long id,
-      @PageableDefault(size = 10, sort = "id") Pageable pageable) {
-    return ApiResponse.<Page<com.bookinghealth.api.dto.response.client.AppointmentResponse>>builder()
+  public ApiResponse<Page<com.bookinghealth.api.dto.response.client.AppointmentResponse>>
+      getPatientAppointments(
+          @PathVariable Long id, @PageableDefault(size = 10, sort = "id") Pageable pageable) {
+    return ApiResponse
+        .<Page<com.bookinghealth.api.dto.response.client.AppointmentResponse>>builder()
         .result(appointmentService.getPatientAppointmentsForAdmin(id, pageable))
         .build();
   }

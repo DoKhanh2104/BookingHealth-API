@@ -21,36 +21,34 @@ public interface UserRepository extends JpaRepository<User, Long> {
   Optional<User> findByEmail(String email);
 
   @Query(
-      value = "SELECT u FROM User u JOIN u.roles r "
-          + "WHERE r.roleName = 'USER' "
-          + "AND u.status != 0 "
-          + "AND NOT EXISTS (SELECT 1 FROM u.roles r2 WHERE r2.roleName IN ('DOCTOR', 'ADMIN')) "
-          + "AND (:search IS NULL OR u.name LIKE %:search% OR u.phone LIKE %:search% OR u.email LIKE %:search%)",
-      countQuery = "SELECT count(u) FROM User u JOIN u.roles r "
-          + "WHERE r.roleName = 'USER' "
-          + "AND u.status != 0 "
-          + "AND NOT EXISTS (SELECT 1 FROM u.roles r2 WHERE r2.roleName IN ('DOCTOR', 'ADMIN')) "
-          + "AND (:search IS NULL OR u.name LIKE %:search% OR u.phone LIKE %:search% OR u.email LIKE %:search%)"
-  )
-  Page<User> findPatientsForAdmin(
-      @Param("search") String search,
-      Pageable pageable);
+      value =
+          "SELECT u FROM User u JOIN u.roles r "
+              + "WHERE r.roleName = 'USER' "
+              + "AND u.status != 0 "
+              + "AND NOT EXISTS (SELECT 1 FROM u.roles r2 WHERE r2.roleName IN ('DOCTOR', 'ADMIN')) "
+              + "AND (:search IS NULL OR u.name LIKE %:search% OR u.phone LIKE %:search% OR u.email LIKE %:search%)",
+      countQuery =
+          "SELECT count(u) FROM User u JOIN u.roles r "
+              + "WHERE r.roleName = 'USER' "
+              + "AND u.status != 0 "
+              + "AND NOT EXISTS (SELECT 1 FROM u.roles r2 WHERE r2.roleName IN ('DOCTOR', 'ADMIN')) "
+              + "AND (:search IS NULL OR u.name LIKE %:search% OR u.phone LIKE %:search% OR u.email LIKE %:search%)")
+  Page<User> findPatientsForAdmin(@Param("search") String search, Pageable pageable);
 
   // ─────────────────────────────────────────────────────────────────────
   // Dashboard queries
   // ─────────────────────────────────────────────────────────────────────
 
-  /**
-   * Đếm tổng số user có role 'USER' (bệnh nhân) — không bao gồm ADMIN/DOCTOR.
-   */
-  @Query("SELECT COUNT(DISTINCT u) FROM User u JOIN u.roles r WHERE r.roleName = 'USER' AND NOT EXISTS (SELECT 1 FROM u.roles r2 WHERE r2.roleName IN ('DOCTOR', 'ADMIN'))")
+  /** Đếm tổng số user có role 'USER' (bệnh nhân) — không bao gồm ADMIN/DOCTOR. */
+  @Query(
+      "SELECT COUNT(DISTINCT u) FROM User u JOIN u.roles r WHERE r.roleName = 'USER' AND NOT EXISTS (SELECT 1 FROM u.roles r2 WHERE r2.roleName IN ('DOCTOR', 'ADMIN'))")
   long countAllPatients();
 
   /**
-   * Đếm user mới đăng ký trong khoảng ngày.
-   * Vì User không có createdAt, dùng ID thay thế tạm — hoặc nếu có thể, thêm createdAt vào entity.
-   * Hiện tại: đếm tất cả user có role USER để tính tổng.
+   * Đếm user mới đăng ký trong khoảng ngày. Vì User không có createdAt, dùng ID thay thế tạm — hoặc
+   * nếu có thể, thêm createdAt vào entity. Hiện tại: đếm tất cả user có role USER để tính tổng.
    */
-  @Query("SELECT COUNT(DISTINCT u) FROM User u JOIN u.roles r WHERE r.roleName = 'USER' AND NOT EXISTS (SELECT 1 FROM u.roles r2 WHERE r2.roleName IN ('DOCTOR', 'ADMIN')) AND u.id > :sinceId")
+  @Query(
+      "SELECT COUNT(DISTINCT u) FROM User u JOIN u.roles r WHERE r.roleName = 'USER' AND NOT EXISTS (SELECT 1 FROM u.roles r2 WHERE r2.roleName IN ('DOCTOR', 'ADMIN')) AND u.id > :sinceId")
   long countNewPatientsSinceId(@Param("sinceId") Long sinceId);
 }

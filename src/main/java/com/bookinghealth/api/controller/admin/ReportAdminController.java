@@ -5,14 +5,13 @@ import com.bookinghealth.api.dto.response.admin.FinancialReportResponse;
 import com.bookinghealth.api.dto.response.admin.PerformanceReportResponse;
 import com.bookinghealth.api.dto.response.admin.SatisfactionReportResponse;
 import com.bookinghealth.api.service.ReportService;
+import java.time.LocalDate;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDate;
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,34 +23,34 @@ public class ReportAdminController {
 
   @GetMapping("/financial")
   public ApiResponse<List<FinancialReportResponse>> getFinancialReport(
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
-      @RequestParam(required = false) Long specialtyId,
-      @RequestParam(required = false) Long clinicId) {
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate fromDate,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate toDate) {
     return ApiResponse.<List<FinancialReportResponse>>builder()
-        .result(reportService.getFinancialReport(fromDate, toDate, specialtyId, clinicId))
+        .result(reportService.getFinancialReport(fromDate, toDate))
         .build();
   }
 
   @GetMapping("/performance")
   public ApiResponse<List<PerformanceReportResponse>> getPerformanceReport(
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
-      @RequestParam(required = false) Long specialtyId,
-      @RequestParam(required = false) Long clinicId) {
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate fromDate,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate toDate) {
     return ApiResponse.<List<PerformanceReportResponse>>builder()
-        .result(reportService.getPerformanceReport(fromDate, toDate, specialtyId, clinicId))
+        .result(reportService.getPerformanceReport(fromDate, toDate))
         .build();
   }
 
   @GetMapping("/satisfaction")
   public ApiResponse<List<SatisfactionReportResponse>> getSatisfactionReport(
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
-      @RequestParam(required = false) Long specialtyId,
-      @RequestParam(required = false) Long clinicId) {
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate fromDate,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate toDate) {
     return ApiResponse.<List<SatisfactionReportResponse>>builder()
-        .result(reportService.getSatisfactionReport(fromDate, toDate, specialtyId, clinicId))
+        .result(reportService.getSatisfactionReport(fromDate, toDate))
         .build();
   }
 }

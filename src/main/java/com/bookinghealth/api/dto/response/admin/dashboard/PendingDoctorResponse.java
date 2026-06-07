@@ -10,11 +10,13 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PendingDoctorResponse {
 
-    Long id;
-    String name;
-    String spec;
-    /** Ngày đăng ký dạng dd/MM/yyyy */
-    String date;
-    /** Trạng thái chứng chỉ: "Đã tải lên" / "Chưa tải lên" */
-    String certStatus;
+  Long id;
+  String name;
+  String spec;
+
+  /** Ngày đăng ký dạng dd/MM/yyyy */
+  String date;
+
+  /** Trạng thái chứng chỉ: "Đã tải lên" / "Chưa tải lên" */
+  String certStatus;
 }

@@ -2,19 +2,18 @@ package com.bookinghealth.api.controller;
 
 import com.bookinghealth.api.dto.request.AuthenticationRequest;
 import com.bookinghealth.api.dto.request.IntrospectRequest;
+import com.bookinghealth.api.dto.request.client.DoctorSignupRequest;
 import com.bookinghealth.api.dto.request.client.ForgotPasswordRequest;
 import com.bookinghealth.api.dto.request.client.GoogleLoginRequest;
 import com.bookinghealth.api.dto.request.client.ResetPasswordRequest;
 import com.bookinghealth.api.dto.request.client.SignupRequest;
-import com.bookinghealth.api.dto.request.client.DoctorSignupRequest;
 import com.bookinghealth.api.dto.response.ApiResponse;
 import com.bookinghealth.api.dto.response.AuthenticationResponse;
 import com.bookinghealth.api.dto.response.IntrospectResponse;
 import com.bookinghealth.api.service.AuthenticationService;
 import com.nimbusds.jose.JOSEException;
-import java.text.ParseException;
-
 import jakarta.validation.Valid;
+import java.text.ParseException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -55,7 +54,9 @@ public class AuthenticationController {
         .build();
   }
 
-  @PostMapping(value = "/signup-doctor", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PostMapping(
+      value = "/signup-doctor",
+      consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
   public ApiResponse<AuthenticationResponse> registerDoctor(
       @Valid @ModelAttribute DoctorSignupRequest request) {
     return ApiResponse.<AuthenticationResponse>builder()
@@ -72,17 +73,15 @@ public class AuthenticationController {
   }
 
   @PostMapping("/forgot-password")
-    public ApiResponse<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+  public ApiResponse<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
 
-      authenticationService.forgotPassword(request);
-        return ApiResponse.<Void>builder()
-                .build();
-    }
+    authenticationService.forgotPassword(request);
+    return ApiResponse.<Void>builder().build();
+  }
 
-    @PostMapping("/reset-password")
-    public ApiResponse<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
-      authenticationService.resetPassword(request);
-      return ApiResponse.<Void>builder()
-              .build();
-    }
+  @PostMapping("/reset-password")
+  public ApiResponse<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+    authenticationService.resetPassword(request);
+    return ApiResponse.<Void>builder().build();
+  }
 }

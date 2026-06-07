@@ -10,6 +10,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class SpecialtyDistributionItem {
 
-    String category;
-    long value;
+  String category;
+  long value;
 }

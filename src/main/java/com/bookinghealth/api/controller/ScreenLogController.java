@@ -21,16 +21,17 @@ import org.springframework.web.bind.annotation.RestController;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ScreenLogController {
 
-    ScreenLogService screenLogService;
+  ScreenLogService screenLogService;
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ApiResponse<ScreenLogResponse> createScreenLog(@RequestBody @Valid ScreenLogRequest request) {
-        ScreenLogResponse response = screenLogService.createScreenLog(request);
-        return ApiResponse.<ScreenLogResponse>builder()
-                .code(HttpStatus.CREATED.value())
-                .message("Screen log created successfully")
-                .result(response)
-                .build();
-    }
+  @PostMapping
+  @ResponseStatus(HttpStatus.CREATED)
+  public ApiResponse<ScreenLogResponse> createScreenLog(
+      @RequestBody @Valid ScreenLogRequest request) {
+    ScreenLogResponse response = screenLogService.createScreenLog(request);
+    return ApiResponse.<ScreenLogResponse>builder()
+        .code(HttpStatus.CREATED.value())
+        .message("Screen log created successfully")
+        .result(response)
+        .build();
+  }
 }

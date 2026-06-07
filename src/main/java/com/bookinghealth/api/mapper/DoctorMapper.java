@@ -2,17 +2,19 @@ package com.bookinghealth.api.mapper;
 
 import com.bookinghealth.api.dto.response.admin.ClinicAdminResponse;
 import com.bookinghealth.api.dto.response.client.DoctorResponse;
-import com.bookinghealth.api.dto.response.client.QualificationResponse;
 import com.bookinghealth.api.dto.response.client.DoctorReviewResponse;
+import com.bookinghealth.api.dto.response.client.QualificationResponse;
 import com.bookinghealth.api.entity.Clinic;
 import com.bookinghealth.api.entity.Doctor;
-import com.bookinghealth.api.entity.Qualification;
 import com.bookinghealth.api.entity.DoctorReview;
 import com.bookinghealth.api.entity.PriceHistory;
+import com.bookinghealth.api.entity.Qualification;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = {SpecialtyMapper.class})
+@Mapper(
+    componentModel = "spring",
+    uses = {SpecialtyMapper.class})
 public interface DoctorMapper {
 
   @Mapping(source = "user.name", target = "name")
@@ -37,7 +39,8 @@ public interface DoctorMapper {
   DoctorReviewResponse toDoctorReviewResponse(DoctorReview review);
 
   default String getReviewDate(DoctorReview review) {
-    if (review.getAppointment() != null && review.getAppointment().getExpectedExaminationDate() != null) {
+    if (review.getAppointment() != null
+        && review.getAppointment().getExpectedExaminationDate() != null) {
       return review.getAppointment().getExpectedExaminationDate().toString();
     }
     return java.time.LocalDate.now().toString();
@@ -68,9 +71,10 @@ public interface DoctorMapper {
     if (doctor.getReviews() == null || doctor.getReviews().isEmpty()) {
       return 5.0;
     }
-    double sum = doctor.getReviews().stream()
-        .mapToDouble(r -> r.getRating() != null ? r.getRating() : 5.0)
-        .sum();
+    double sum =
+        doctor.getReviews().stream()
+            .mapToDouble(r -> r.getRating() != null ? r.getRating() : 5.0)
+            .sum();
     return Math.round((sum / doctor.getReviews().size()) * 10.0) / 10.0;
   }
 

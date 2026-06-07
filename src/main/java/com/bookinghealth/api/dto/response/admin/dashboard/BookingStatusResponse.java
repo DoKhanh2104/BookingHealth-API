@@ -10,7 +10,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class BookingStatusResponse {
 
-    long pending;
-    long completed;
-    long cancelled;
+  long pending;
+  long completed;
+  long cancelled;
 }

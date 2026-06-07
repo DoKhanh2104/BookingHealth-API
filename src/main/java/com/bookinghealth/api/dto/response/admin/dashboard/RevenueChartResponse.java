@@ -11,6 +11,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class RevenueChartResponse {
 
-    List<String> labels;
-    List<Double> data;
+  List<String> labels;
+  List<Double> data;
 }

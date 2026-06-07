@@ -12,6 +12,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(value = Exception.class)
   public ResponseEntity<ApiResponse> handleException(Exception exception) {
+    exception.printStackTrace(); // Log the actual error to the console
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
         .body(
             ApiResponse.builder()

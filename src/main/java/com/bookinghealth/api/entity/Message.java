@@ -1,9 +1,9 @@
 package com.bookinghealth.api.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import java.time.LocalDateTime;
 
 @Getter
 @Setter

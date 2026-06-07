@@ -7,7 +7,9 @@ import com.bookinghealth.api.entity.AppointmentSlot;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = {DoctorMapper.class, UserMapper.class})
+@Mapper(
+    componentModel = "spring",
+    uses = {DoctorMapper.class, UserMapper.class})
 public interface AppointmentMapper {
 
   @Mapping(source = "doctor", target = "doctor")
@@ -21,8 +23,10 @@ public interface AppointmentMapper {
     }
     var template = slot.getTimeSlotTemplate();
     boolean doctorOpen = slot.getStatus() != null && slot.getStatus() == 1;
-    boolean booked = slot.getAppointments() != null && slot.getAppointments().stream()
-        .anyMatch(app -> app.getStatus() != null && app.getStatus() != 3);
+    boolean booked =
+        slot.getAppointments() != null
+            && slot.getAppointments().stream()
+                .anyMatch(app -> app.getStatus() != null && app.getStatus() != 3);
     boolean available = doctorOpen && !booked;
 
     return ScheduleSlotResponse.builder()

@@ -43,38 +43,34 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
       Pageable pageable);
 
   @Query(
-      value = "SELECT d FROM Doctor d JOIN FETCH d.user u LEFT JOIN FETCH d.clinic c "
-          + "WHERE d.status = 1 "
-          + "AND (:clinicId IS NULL OR c.id = :clinicId) "
-          + "AND (:doctorId IS NULL OR d.id = :doctorId)",
-      countQuery = "SELECT count(d) FROM Doctor d WHERE d.status = 1 "
-          + "AND (:clinicId IS NULL OR d.clinic.id = :clinicId) "
-          + "AND (:doctorId IS NULL OR d.id = :doctorId)"
-  )
+      value =
+          "SELECT d FROM Doctor d JOIN FETCH d.user u LEFT JOIN FETCH d.clinic c "
+              + "WHERE d.status = 1 "
+              + "AND (:clinicId IS NULL OR c.id = :clinicId) "
+              + "AND (:doctorId IS NULL OR d.id = :doctorId)",
+      countQuery =
+          "SELECT count(d) FROM Doctor d WHERE d.status = 1 "
+              + "AND (:clinicId IS NULL OR d.clinic.id = :clinicId) "
+              + "AND (:doctorId IS NULL OR d.id = :doctorId)")
   Page<Doctor> findActiveDoctorsForSchedule(
-      @Param("clinicId") Long clinicId,
-      @Param("doctorId") Long doctorId,
-      Pageable pageable);
+      @Param("clinicId") Long clinicId, @Param("doctorId") Long doctorId, Pageable pageable);
 
   // ─────────────────────────────────────────────────────────────────────
   // Dashboard queries
   // ─────────────────────────────────────────────────────────────────────
 
-  /**
-   * Đếm bác sĩ PENDING (status = 0) chưa được duyệt.
-   */
+  /** Đếm bác sĩ PENDING (status = 0) chưa được duyệt. */
   long countByStatus(Integer status);
 
   /**
-   * Đếm bác sĩ mới đăng ký (practiceStartDate trong khoảng).
-   * status = 0 (PENDING) hoặc 1 (APPROVED) — lấy tất cả để tính "bác sĩ mới trong kỳ".
+   * Đếm bác sĩ mới đăng ký (practiceStartDate trong khoảng). status = 0 (PENDING) hoặc 1 (APPROVED)
+   * — lấy tất cả để tính "bác sĩ mới trong kỳ".
    */
   @Query("SELECT COUNT(d) FROM Doctor d WHERE d.practiceStartDate BETWEEN :from AND :to")
   long countNewDoctorsByDateRange(@Param("from") LocalDate from, @Param("to") LocalDate to);
 
-  /**
-   * Bác sĩ đang chờ phê duyệt (status = 0), lấy kèm thông tin user và specialty.
-   */
-  @Query("SELECT d FROM Doctor d JOIN FETCH d.user u LEFT JOIN FETCH d.specialties s WHERE d.status = 0 ORDER BY d.practiceStartDate DESC")
+  /** Bác sĩ đang chờ phê duyệt (status = 0), lấy kèm thông tin user và specialty. */
+  @Query(
+      "SELECT d FROM Doctor d JOIN FETCH d.user u LEFT JOIN FETCH d.specialties s WHERE d.status = 0 ORDER BY d.practiceStartDate DESC")
   List<Doctor> findPendingDoctors();
 }

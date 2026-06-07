@@ -1,10 +1,8 @@
 package com.bookinghealth.api.dto.request.admin;
 
-
+import java.time.LocalTime;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.time.LocalTime;
 
 @Getter
 @Setter
@@ -14,6 +12,6 @@ import java.time.LocalTime;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AppointmentSlotRequest {
 
-    LocalTime startTime;
-    LocalTime endTime;
+  LocalTime startTime;
+  LocalTime endTime;
 }

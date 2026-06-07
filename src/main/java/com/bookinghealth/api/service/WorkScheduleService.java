@@ -1,6 +1,7 @@
 package com.bookinghealth.api.service;
 
 import com.bookinghealth.api.constant.PredefinedStatusTimeSlot;
+import com.bookinghealth.api.dto.response.admin.WorkScheduleAdminResponse;
 import com.bookinghealth.api.dto.response.client.ScheduleSlotResponse;
 import com.bookinghealth.api.dto.response.client.WorkScheduleResponse;
 import com.bookinghealth.api.entity.AppointmentSlot;
@@ -16,15 +17,14 @@ import com.bookinghealth.api.repository.DoctorRepository;
 import com.bookinghealth.api.repository.TimeSlotTemplateRepository;
 import com.bookinghealth.api.repository.UserRepository;
 import com.bookinghealth.api.repository.WorkScheduleRepository;
-import com.bookinghealth.api.dto.response.admin.WorkScheduleAdminResponse;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,8 +63,7 @@ public class WorkScheduleService {
       throw new AppException(ErrorCode.UNAUTHORIZED);
     }
 
-    if (appointmentRepository.existsByAppointmentSlotIdAndStatusNotIn(
-        slotId, CANCELLED_STATUSES)) {
+    if (appointmentRepository.existsByAppointmentSlotIdAndStatusNotIn(slotId, CANCELLED_STATUSES)) {
       throw new AppException(ErrorCode.TIME_SLOT_BOOKED);
     }
 
@@ -100,8 +99,7 @@ public class WorkScheduleService {
   @Transactional
   public void ensureScheduleSlots(WorkSchedule schedule) {
     List<TimeSlotTemplate> templates =
-        timeSlotTemplateRepository.findByStatusOrderByStartTimeAsc(
-            PredefinedStatusTimeSlot.ACTIVE);
+        timeSlotTemplateRepository.findByStatusOrderByStartTimeAsc(PredefinedStatusTimeSlot.ACTIVE);
 
     for (TimeSlotTemplate template : templates) {
       if (!appointmentSlotRepository.existsByWorkScheduleIdAndTimeSlotTemplateId(
@@ -176,33 +174,63 @@ public class WorkScheduleService {
   public Page<WorkScheduleAdminResponse> getWorkSchedulesForAdmin(
       String dateStr, Long clinicId, Long doctorId, Pageable pageable) {
     LocalDate date = LocalDate.parse(dateStr);
-    Page<Doctor> doctorsPage = doctorRepository.findActiveDoctorsForSchedule(clinicId, doctorId, pageable);
-    java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm");
+    Page<Doctor> doctorsPage =
+        doctorRepository.findActiveDoctorsForSchedule(clinicId, doctorId, pageable);
+    java.time.format.DateTimeFormatter formatter =
+        java.time.format.DateTimeFormatter.ofPattern("HH:mm");
 
-    return doctorsPage.map(doctor -> {
-      WorkSchedule schedule = getOrCreateWorkSchedule(doctor.getId(), date);
+    return doctorsPage.map(
+        doctor -> {
+          WorkSchedule schedule = getOrCreateWorkSchedule(doctor.getId(), date);
+          ensureScheduleSlots(schedule);
+
+          List<AppointmentSlot> activeSlots =
+              appointmentSlotRepository.findByWorkScheduleIdWithActiveTemplates(
+                  schedule.getId(), PredefinedStatusTimeSlot.ACTIVE);
+
+          List<String> activeTimeSlots =
+              activeSlots.stream()
+                  .filter(slot -> slot.getStatus() == PredefinedStatusTimeSlot.ACTIVE)
+                  .map(
+                      slot -> {
+                        TimeSlotTemplate template = slot.getTimeSlotTemplate();
+                        return template.getStartTime().format(formatter)
+                            + " - "
+                            + template.getEndTime().format(formatter);
+                      })
+                  .collect(Collectors.toList());
+
+          return WorkScheduleAdminResponse.builder()
+              .id(schedule.getId())
+              .doctorId(doctor.getId())
+              .doctorName(doctor.getUser().getName())
+              .clinicId(doctor.getClinic() != null ? doctor.getClinic().getId() : null)
+              .clinicName(doctor.getClinic() != null ? doctor.getClinic().getClinicName() : "")
+              .date(date)
+              .timeSlots(activeTimeSlots)
+              .build();
+        });
+  }
+
+  @Transactional
+  public void blockScheduleForLeave(Long doctorId, LocalDate startDate, LocalDate endDate) {
+    LocalDate currentDate = startDate;
+    while (!currentDate.isAfter(endDate)) {
+      // Get or create the schedule for the day so we can block it completely
+      WorkSchedule schedule = getOrCreateWorkSchedule(doctorId, currentDate);
       ensureScheduleSlots(schedule);
 
-      List<AppointmentSlot> activeSlots = appointmentSlotRepository.findByWorkScheduleIdWithActiveTemplates(
-          schedule.getId(), PredefinedStatusTimeSlot.ACTIVE);
+      // Fetch all slots and set them to INACTIVE
+      List<AppointmentSlot> slots =
+          appointmentSlotRepository.findByWorkSchedule_Id(schedule.getId());
+      for (AppointmentSlot slot : slots) {
+        if (slot.getStatus() == PredefinedStatusTimeSlot.ACTIVE) {
+          slot.setStatus(PredefinedStatusTimeSlot.INACTIVE);
+        }
+      }
+      appointmentSlotRepository.saveAll(slots);
 
-      List<String> activeTimeSlots = activeSlots.stream()
-          .filter(slot -> slot.getStatus() == PredefinedStatusTimeSlot.ACTIVE)
-          .map(slot -> {
-            TimeSlotTemplate template = slot.getTimeSlotTemplate();
-            return template.getStartTime().format(formatter) + " - " + template.getEndTime().format(formatter);
-          })
-          .collect(Collectors.toList());
-
-      return WorkScheduleAdminResponse.builder()
-          .id(schedule.getId())
-          .doctorId(doctor.getId())
-          .doctorName(doctor.getUser().getName())
-          .clinicId(doctor.getClinic() != null ? doctor.getClinic().getId() : null)
-          .clinicName(doctor.getClinic() != null ? doctor.getClinic().getClinicName() : "")
-          .date(date)
-          .timeSlots(activeTimeSlots)
-          .build();
-    });
+      currentDate = currentDate.plusDays(1);
+    }
   }
 }

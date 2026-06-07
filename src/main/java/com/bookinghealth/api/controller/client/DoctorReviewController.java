@@ -19,7 +19,8 @@ public class DoctorReviewController {
   DoctorReviewService doctorReviewService;
 
   @PostMapping
-  public ApiResponse<DoctorReviewResponse> createReview(@Valid @RequestBody CreateReviewRequest request) {
+  public ApiResponse<DoctorReviewResponse> createReview(
+      @Valid @RequestBody CreateReviewRequest request) {
     return ApiResponse.<DoctorReviewResponse>builder()
         .result(doctorReviewService.createReview(request))
         .build();

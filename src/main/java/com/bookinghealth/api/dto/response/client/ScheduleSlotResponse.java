@@ -1,10 +1,9 @@
 package com.bookinghealth.api.dto.response.client;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import java.time.LocalTime;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.time.LocalTime;
 
 @Data
 @Builder

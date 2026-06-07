@@ -1,11 +1,9 @@
 package com.bookinghealth.api.entity;
 
-
 import jakarta.persistence.*;
+import java.time.LocalDate;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -17,24 +15,24 @@ import java.time.LocalDate;
 @Table(name = "NGAY_NGHI_PHEP")
 public class DoctorDayOff {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "maNgayNghi", nullable = false)
-    Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "maNgayNghi", nullable = false)
+  Long id;
 
-    @Column(name = "ngayBatDau")
-    LocalDate startDate;
+  @Column(name = "ngayBatDau")
+  LocalDate startDate;
 
-    @Column(name = "ngayKetThuc")
-    LocalDate endDate;
+  @Column(name = "ngayKetThuc")
+  LocalDate endDate;
 
-    @Column(name = "lyDo")
-    String reason;
+  @Column(name = "lyDo")
+  String reason;
 
-    @Column(name = "trangThai")
-    Integer status;
+  @Column(name = "trangThai")
+  Integer status;
 
-    @ManyToOne
-    @JoinColumn(name = "maBacSi")
-    Doctor doctor;
+  @ManyToOne
+  @JoinColumn(name = "maBacSi")
+  Doctor doctor;
 }

@@ -7,8 +7,8 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 /**
- * Ca khám của bác sĩ theo ngày (junction): lịch làm việc + khung giờ chuẩn.
- * trangThai: bác sĩ mở (1) / đóng (0) ca đó.
+ * Ca khám của bác sĩ theo ngày (junction): lịch làm việc + khung giờ chuẩn. trangThai: bác sĩ mở
+ * (1) / đóng (0) ca đó.
  */
 @Getter
 @Setter

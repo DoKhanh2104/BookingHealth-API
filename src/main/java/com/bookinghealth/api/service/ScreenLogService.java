@@ -22,42 +22,47 @@ import org.springframework.transaction.annotation.Transactional;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ScreenLogService {
 
-    ScreenLogRepository screenLogRepository;
-    SpecialtyRepository specialtyRepository;
-    UserRepository userRepository;
+  ScreenLogRepository screenLogRepository;
+  SpecialtyRepository specialtyRepository;
+  UserRepository userRepository;
 
-    @Transactional
-    public ScreenLogResponse createScreenLog(ScreenLogRequest request) {
-        User user = null;
-        try {
-            var authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication != null && authentication.isAuthenticated() && !authentication.getPrincipal().equals("anonymousUser")) {
-                String userEmail = authentication.getName();
-                user = userRepository.findByEmail(userEmail).orElse(null);
-            }
-        } catch (Exception e) {
-            log.warn("Could not get authenticated user for screen log: {}", e.getMessage());
-        }
-
-        Specialty specialty = null;
-        if (request.getSpecialtyName() != null && !request.getSpecialtyName().isBlank()) {
-            specialty = specialtyRepository.findFirstBySpecialtyNameContainingIgnoreCase(request.getSpecialtyName())
-                    .orElse(null);
-        }
-
-        ScreenLog screenLog = ScreenLog.builder()
-                .user(user)
-                .suggestedSpecialty(specialty)
-                .symptoms(request.getSymptoms())
-                .build();
-
-        screenLog = screenLogRepository.save(screenLog);
-
-        return ScreenLogResponse.builder()
-                .id(screenLog.getId())
-                .userId(user != null ? user.getId() : null)
-                .specialtyName(specialty != null ? specialty.getSpecialtyName() : null)
-                .symptoms(screenLog.getSymptoms())
-                .build();
+  @Transactional
+  public ScreenLogResponse createScreenLog(ScreenLogRequest request) {
+    User user = null;
+    try {
+      var authentication = SecurityContextHolder.getContext().getAuthentication();
+      if (authentication != null
+          && authentication.isAuthenticated()
+          && !authentication.getPrincipal().equals("anonymousUser")) {
+        String userEmail = authentication.getName();
+        user = userRepository.findByEmail(userEmail).orElse(null);
+      }
+    } catch (Exception e) {
+      log.warn("Could not get authenticated user for screen log: {}", e.getMessage());
     }
+
+    Specialty specialty = null;
+    if (request.getSpecialtyName() != null && !request.getSpecialtyName().isBlank()) {
+      specialty =
+          specialtyRepository
+              .findFirstBySpecialtyNameContainingIgnoreCase(request.getSpecialtyName())
+              .orElse(null);
+    }
+
+    ScreenLog screenLog =
+        ScreenLog.builder()
+            .user(user)
+            .suggestedSpecialty(specialty)
+            .symptoms(request.getSymptoms())
+            .build();
+
+    screenLog = screenLogRepository.save(screenLog);
+
+    return ScreenLogResponse.builder()
+        .id(screenLog.getId())
+        .userId(user != null ? user.getId() : null)
+        .specialtyName(specialty != null ? specialty.getSpecialtyName() : null)
+        .symptoms(screenLog.getSymptoms())
+        .build();
+  }
 }

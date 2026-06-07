@@ -17,8 +17,8 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ScreenLogRequest {
 
-    @NotBlank(message = "Symptoms must not be blank")
-    String symptoms;
+  @NotBlank(message = "Symptoms must not be blank")
+  String symptoms;
 
-    String specialtyName; // Optional, might be null if not found
+  String specialtyName; // Optional, might be null if not found
 }

@@ -20,7 +20,8 @@ public class AppointmentSlotController {
   AppointmentSlotService appointmentSlotService;
 
   @PostMapping
-  public ApiResponse<AppointmentSlotResponse> createTimeSlot(@RequestBody AppointmentSlotRequest request) {
+  public ApiResponse<AppointmentSlotResponse> createTimeSlot(
+      @RequestBody AppointmentSlotRequest request) {
     return ApiResponse.<AppointmentSlotResponse>builder()
         .result(appointmentSlotService.createTimeSlot(request))
         .build();

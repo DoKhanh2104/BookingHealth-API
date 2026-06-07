@@ -10,8 +10,8 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class DashboardSummaryResponse {
 
-    long totalBookings;
-    long newDoctors;
-    long newUsers;
-    double totalRevenue;
+  long totalBookings;
+  long newDoctors;
+  long newUsers;
+  double totalRevenue;
 }

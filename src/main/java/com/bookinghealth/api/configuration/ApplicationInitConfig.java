@@ -42,7 +42,10 @@ public class ApplicationInitConfig {
             Role.builder().roleName(PredefinedRole.USER_ROLE).roleDescription("User role").build());
 
         roleRepository.save(
-            Role.builder().roleName(PredefinedRole.DOCTOR_ROLE).roleDescription("Doctor role").build());
+            Role.builder()
+                .roleName(PredefinedRole.DOCTOR_ROLE)
+                .roleDescription("Doctor role")
+                .build());
 
         Role adminRole =
             roleRepository.save(

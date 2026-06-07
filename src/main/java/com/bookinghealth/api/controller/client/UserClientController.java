@@ -17,27 +17,25 @@ import org.springframework.web.multipart.MultipartFile;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequestMapping("/users")
 public class UserClientController {
-    UserService userService;
+  UserService userService;
 
-    @GetMapping("/me")
-    public ApiResponse<UserResponse> getMyProfile() {
-        return ApiResponse.<UserResponse>builder()
-                .result(userService.getMyProfile())
-                .build();
-    }
+  @GetMapping("/me")
+  public ApiResponse<UserResponse> getMyProfile() {
+    return ApiResponse.<UserResponse>builder().result(userService.getMyProfile()).build();
+  }
 
-    @PutMapping("/me")
-    public ApiResponse<UserResponse> updateMyProfile(@Valid @RequestBody UpdateProfileRequest request) {
-        return ApiResponse.<UserResponse>builder()
-                .result(userService.updateMyProfile(request))
-                .build();
-    }
+  @PutMapping("/me")
+  public ApiResponse<UserResponse> updateMyProfile(
+      @Valid @RequestBody UpdateProfileRequest request) {
+    return ApiResponse.<UserResponse>builder().result(userService.updateMyProfile(request)).build();
+  }
 
-    @PostMapping("/me/avatar")
-    public ApiResponse<AvatarUploadResponse> uploadMyAvatar(@RequestParam("file") MultipartFile file) {
-        String avatarUrl = userService.uploadMyAvatar(file);
-        return ApiResponse.<AvatarUploadResponse>builder()
-                .result(new AvatarUploadResponse(avatarUrl))
-                .build();
-    }
+  @PostMapping("/me/avatar")
+  public ApiResponse<AvatarUploadResponse> uploadMyAvatar(
+      @RequestParam("file") MultipartFile file) {
+    String avatarUrl = userService.uploadMyAvatar(file);
+    return ApiResponse.<AvatarUploadResponse>builder()
+        .result(new AvatarUploadResponse(avatarUrl))
+        .build();
+  }
 }

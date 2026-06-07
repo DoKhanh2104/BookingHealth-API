@@ -31,13 +31,13 @@ public enum ErrorCode {
   TIME_SLOT_NOT_FOUND(1016, HttpStatus.NOT_FOUND, "Không tìm thấy khung giờ"),
   TIME_SLOT_BOOKED(1025, HttpStatus.BAD_REQUEST, "Khung giờ đã có lịch hẹn, không thể thay đổi"),
   GOOGLE_LOGIN_FAILED(1019, HttpStatus.BAD_REQUEST, "Đăng nhập Google thất bại"),
-    TOKEN_NOT_FOUND(1020, HttpStatus.NOT_FOUND, "Đường dẫn không hợp lệ"),
-    TOKEN_EXPIRATION(1021, HttpStatus.BAD_REQUEST, "Đường dẫn lấy lại mật khẩu đã hết hạn"),
-    LICENSE_EXISTED(1022, HttpStatus.BAD_REQUEST, "Số giấy phép hành nghề đã được đăng ký"),
-    CLINIC_NOT_FOUND(1024, HttpStatus.NOT_FOUND, "Không tìm thấy phòng khám"),
-    APPOINTMENT_NOT_FOUND(1026, HttpStatus.NOT_FOUND, "Không tìm thấy lịch hẹn"),
-    INVALID_APPOINTMENT_STATUS(1027, HttpStatus.BAD_REQUEST, "Trạng thái lịch hẹn không hợp lệ")
-  ;
+  TOKEN_NOT_FOUND(1020, HttpStatus.NOT_FOUND, "Đường dẫn không hợp lệ"),
+  TOKEN_EXPIRATION(1021, HttpStatus.BAD_REQUEST, "Đường dẫn lấy lại mật khẩu đã hết hạn"),
+  LICENSE_EXISTED(1022, HttpStatus.BAD_REQUEST, "Số giấy phép hành nghề đã được đăng ký"),
+  CLINIC_NOT_FOUND(1024, HttpStatus.NOT_FOUND, "Không tìm thấy phòng khám"),
+  APPOINTMENT_NOT_FOUND(1026, HttpStatus.NOT_FOUND, "Không tìm thấy lịch hẹn"),
+  INVALID_APPOINTMENT_STATUS(1027, HttpStatus.BAD_REQUEST, "Trạng thái lịch hẹn không hợp lệ"),
+  DAY_OFF_NOT_FOUND(1028, HttpStatus.NOT_FOUND, "Không tìm thấy đơn nghỉ phép");
 
   ErrorCode(int code, HttpStatusCode statusCode, String message) {
     this.code = code;

@@ -19,14 +19,14 @@ import org.springframework.web.bind.annotation.RestController;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AppointmentController {
 
-    AppointmentService appointmentService;
+  AppointmentService appointmentService;
 
-    @GetMapping
-    public ApiResponse<Page<AppointmentResponse>> getAppointments(
-            @PageableDefault(size = 10) Pageable pageable) {
+  @GetMapping
+  public ApiResponse<Page<AppointmentResponse>> getAppointments(
+      @PageableDefault(size = 10) Pageable pageable) {
 
-        return ApiResponse.<Page<AppointmentResponse>>builder()
-                .result(appointmentService.getAppointments(pageable))
-                .build();
-    }
+    return ApiResponse.<Page<AppointmentResponse>>builder()
+        .result(appointmentService.getAppointments(pageable))
+        .build();
+  }
 }

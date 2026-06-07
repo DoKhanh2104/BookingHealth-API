@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,7 +16,6 @@ import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -34,8 +34,8 @@ public class SecurityConfig {
     "/auth/signup-doctor",
     "/auth/google",
     "/auth/refresh",
-    "/auth/forgot-password",  // gửi email đặt lại mật khẩu
-    "/auth/reset-password",   // đặt lại mật khẩu mới bằng token
+    "/auth/forgot-password", // gửi email đặt lại mật khẩu
+    "/auth/reset-password", // đặt lại mật khẩu mới bằng token
     "/swagger-ui/**"
   };
 
@@ -50,28 +50,37 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS)
                     .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/clinics/**", "/specialties/**", "/doctors/**")
+                    .requestMatchers(
+                        HttpMethod.GET, "/clinics/**", "/specialties/**", "/doctors/**")
                     .permitAll()
                     .anyRequest()
                     .authenticated());
     http.oauth2ResourceServer(
-        oauth -> oauth.jwt(jwtConfigurer -> jwtConfigurer
-            .decoder(jwtDecoder())
-            .jwtAuthenticationConverter(jwtAuthenticationConverter())
-        )
-    );
+        oauth ->
+            oauth.jwt(
+                jwtConfigurer ->
+                    jwtConfigurer
+                        .decoder(jwtDecoder())
+                        .jwtAuthenticationConverter(jwtAuthenticationConverter())));
 
     return http.build();
   }
 
   @Bean
-  public org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter jwtAuthenticationConverter() {
-    org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter =
-        new org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter();
+  public org.springframework.security.oauth2.server.resource.authentication
+          .JwtAuthenticationConverter
+      jwtAuthenticationConverter() {
+    org.springframework.security.oauth2.server.resource.authentication
+            .JwtGrantedAuthoritiesConverter
+        grantedAuthoritiesConverter =
+            new org.springframework.security.oauth2.server.resource.authentication
+                .JwtGrantedAuthoritiesConverter();
     grantedAuthoritiesConverter.setAuthorityPrefix("");
-    
-    org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter jwtAuthenticationConverter =
-        new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter();
+
+    org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter
+        jwtAuthenticationConverter =
+            new org.springframework.security.oauth2.server.resource.authentication
+                .JwtAuthenticationConverter();
     jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
     return jwtAuthenticationConverter;
   }
