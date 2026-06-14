@@ -13,6 +13,19 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
   boolean existsByAppointmentSlotIdAndStatusNotIn(Long appointmentSlotId, List<Integer> statuses);
 
+  /**
+   * Tìm tất cả lịch hẹn vào ngày cụ thể với trạng thái nhất định.
+   * Dùng cho job nhắc hẹn trước 1 ngày.
+   */
+  List<Appointment> findByExpectedExaminationDateAndStatusIn(LocalDate date, List<Integer> statuses);
+
+  /**
+   * Tìm tất cả lịch hẹn của bác sĩ trong khoảng nghỉ phép với status cụ thể.
+   * Dùng khi admin duyệt đơn nghỉ → hủy và thông báo cho bệnh nhân.
+   */
+  List<Appointment> findByDoctorIdAndExpectedExaminationDateBetweenAndStatusIn(
+      Long doctorId, LocalDate start, LocalDate end, List<Integer> statuses);
+
   Page<Appointment> findByUserId(Long userId, Pageable pageable);
 
   Page<Appointment> findByUserIdAndStatus(Long userId, Integer status, Pageable pageable);

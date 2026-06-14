@@ -37,7 +37,15 @@ public enum ErrorCode {
   CLINIC_NOT_FOUND(1024, HttpStatus.NOT_FOUND, "Không tìm thấy phòng khám"),
   APPOINTMENT_NOT_FOUND(1026, HttpStatus.NOT_FOUND, "Không tìm thấy lịch hẹn"),
   INVALID_APPOINTMENT_STATUS(1027, HttpStatus.BAD_REQUEST, "Trạng thái lịch hẹn không hợp lệ"),
-  DAY_OFF_NOT_FOUND(1028, HttpStatus.NOT_FOUND, "Không tìm thấy đơn nghỉ phép");
+  DAY_OFF_NOT_FOUND(1028, HttpStatus.NOT_FOUND, "Không tìm thấy đơn nghỉ phép"),
+  USER_BLACKLISTED(
+      1029,
+      HttpStatus.FORBIDDEN,
+      "Tài khoản của bạn đã bị tạm khóa đặt lịch do vi phạm hủy lịch nhiều lần. Vui lòng liên hệ hỗ trợ."),
+  LATE_CANCELLATION(
+      1030,
+      HttpStatus.BAD_REQUEST,
+      "Hủy lịch trong vòng 48h trước giờ khám. Vi phạm đã được ghi nhận.");
 
   ErrorCode(int code, HttpStatusCode statusCode, String message) {
     this.code = code;

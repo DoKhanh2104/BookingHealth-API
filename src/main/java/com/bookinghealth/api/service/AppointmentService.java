@@ -17,6 +17,8 @@ import com.bookinghealth.api.repository.AppointmentSlotRepository;
 import com.bookinghealth.api.repository.DoctorRepository;
 import com.bookinghealth.api.repository.UserRepository;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
@@ -111,16 +113,25 @@ public class AppointmentService {
       BookAppointmentRequest request) {
     User currentUser = getCurrentUser();
 
+    // ── Feature 3: Kiểm tra bịnh nhân có bị chặn đặt lịch không ──
+    if (currentUser.getIsBlacklisted() != null && currentUser.getIsBlacklisted() == 1) {
+      throw new AppException(ErrorCode.USER_BLACKLISTED);
+    }
+
     Doctor doctor =
         doctorRepository
             .findById(request.getDoctorId())
             .orElseThrow(() -> new AppException(ErrorCode.DOCTOR_NOT_FOUND));
 
+    // ── Feature 2: Pessimistic lock — SELECT ... FOR UPDATE ──
+    // Chỉ 1 transaction có thể lock slot này cùng lúc.
+    // Transaction thứ 2 sẽ block ở đây cho đến khi transaction 1 commit/rollback.
     AppointmentSlot slot =
         appointmentSlotRepository
-            .findById(request.getAppointmentSlotId())
+            .findByIdWithLock(request.getAppointmentSlotId())
             .orElseThrow(() -> new AppException(ErrorCode.TIME_SLOT_NOT_FOUND));
 
+    // Kiểm tra sau khi đã giữ lock: nếu ai đó đặt trước trong cùng transaction window
     boolean alreadyBooked =
         appointmentRepository.existsByAppointmentSlotIdAndStatusNotIn(slot.getId(), List.of(3));
     if (alreadyBooked) {
@@ -257,6 +268,49 @@ public class AppointmentService {
 
     appointment.setStatus(3);
     Appointment saved = appointmentRepository.save(appointment);
+
+    // ── Feature 3: Chế tài khi bệnh nhân hủy trong vòng 48h ──
+    if (!isDoctor && saved.getExpectedExaminationDate() != null) {
+      // Ghép ngày khám + 00:00 (bắt đầu ngày) để so sánh
+      LocalDateTime appointmentStart =
+          LocalDateTime.of(saved.getExpectedExaminationDate(), LocalTime.MIDNIGHT);
+      LocalDateTime now = LocalDateTime.now();
+      long hoursUntilAppointment =
+          java.time.Duration.between(now, appointmentStart).toHours();
+
+      if (hoursUntilAppointment <= 48) {
+        // Ghi nhận vi phạm
+        int currentPenalty =
+            currentUser.getPenaltyCount() != null ? currentUser.getPenaltyCount() : 0;
+        currentPenalty++;
+        currentUser.setPenaltyCount(currentPenalty);
+
+        String penaltyNotifTitle;
+        String penaltyNotifContent;
+
+        if (currentPenalty >= 3) {
+          // Khóa tài khoản
+          currentUser.setIsBlacklisted(1);
+          penaltyNotifTitle = "⚠️ Tài khoản bị tạm khóa đặt lịch";
+          penaltyNotifContent =
+              String.format(
+                  "Bạn đã hủy lịch khám trong vòng 48h lần thứ %d. "
+                      + "Tài khoản của bạn đã bị tạm khóa chức năng đặt lịch. "
+                      + "Vui lòng liên hệ support@bookinghealth.vn để được hỗ trợ.",
+                  currentPenalty);
+        } else {
+          penaltyNotifTitle = "⚠️ Cảnh báo hủy lịch muộn";
+          penaltyNotifContent =
+              String.format(
+                  "Bạn vừa hủy lịch khám trong vòng 48h (vi phạm lần %d/3). "
+                      + "Nếu tiếp tục, tài khoản sẽ bị tạm khóa chức năng đặt lịch.",
+                  currentPenalty);
+        }
+
+        userRepository.save(currentUser);
+        notificationService.createNotification(currentUser, penaltyNotifTitle, penaltyNotifContent, 3);
+      }
+    }
 
     // Push notification to the other party
     String timeSlotStr = "";

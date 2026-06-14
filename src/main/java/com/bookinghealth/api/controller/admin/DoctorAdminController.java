@@ -3,6 +3,7 @@ package com.bookinghealth.api.controller.admin;
 import com.bookinghealth.api.dto.request.admin.DoctorStatusUpdateRequest;
 import com.bookinghealth.api.dto.response.ApiResponse;
 import com.bookinghealth.api.dto.response.admin.DoctorAdminResponse;
+import com.bookinghealth.api.dto.response.client.QualificationResponse;
 import com.bookinghealth.api.service.DoctorService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -43,6 +44,15 @@ public class DoctorAdminController {
       @PathVariable Long id, @Valid @RequestBody DoctorStatusUpdateRequest request) {
     doctorService.updateDoctorStatus(id, request);
     return ApiResponse.<String>builder().result("Cập nhật trạng thái bác sĩ thành công").build();
+  }
+
+  @PutMapping("/{id}/qualifications/{qualId}/status")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ApiResponse<QualificationResponse> approveQualification(
+      @PathVariable Long qualId, @RequestParam Integer status) {
+    return ApiResponse.<QualificationResponse>builder()
+        .result(doctorService.approveQualification(qualId, status))
+        .build();
   }
 
   @GetMapping("/work-schedules")

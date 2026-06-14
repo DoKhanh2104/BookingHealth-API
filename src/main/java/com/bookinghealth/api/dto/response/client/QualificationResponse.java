@@ -13,4 +13,6 @@ public class QualificationResponse {
   Long id;
   String degree; // Maps to qualificationName
   LocalDateTime issueDate;
+  String attachmentUrl;
+  Integer status;
 }

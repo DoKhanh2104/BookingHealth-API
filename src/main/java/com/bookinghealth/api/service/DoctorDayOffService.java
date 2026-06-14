@@ -2,11 +2,13 @@ package com.bookinghealth.api.service;
 
 import com.bookinghealth.api.dto.request.client.DayOffRequest;
 import com.bookinghealth.api.dto.response.admin.DayOffResponse;
+import com.bookinghealth.api.entity.Appointment;
 import com.bookinghealth.api.entity.Doctor;
 import com.bookinghealth.api.entity.DoctorDayOff;
 import com.bookinghealth.api.entity.User;
 import com.bookinghealth.api.exception.AppException;
 import com.bookinghealth.api.exception.ErrorCode;
+import com.bookinghealth.api.repository.AppointmentRepository;
 import com.bookinghealth.api.repository.DoctorDayOffRepository;
 import com.bookinghealth.api.repository.DoctorRepository;
 import com.bookinghealth.api.repository.UserRepository;
@@ -31,6 +33,7 @@ public class DoctorDayOffService {
   UserRepository userRepository;
   NotificationService notificationService;
   WorkScheduleService workScheduleService;
+  AppointmentRepository appointmentRepository;
 
   // ─── Client (Doctor) ───────────────────────────────────────────
 
@@ -79,19 +82,73 @@ public class DoctorDayOffService {
     dayOff.setStatus(1); // APPROVED
     doctorDayOffRepository.save(dayOff);
 
-    // Block schedule
+    // 1. Block schedule (lịch làm việc)
     if (dayOff.getDoctor() != null) {
       workScheduleService.blockScheduleForLeave(
           dayOff.getDoctor().getId(), dayOff.getStartDate(), dayOff.getEndDate());
 
-      // Send notification
+      // 2. Tìm tất cả lịch hẹn bị ảnh hưởng (PENDING=0, CONFIRMED=1)
+      List<Appointment> affected =
+          appointmentRepository.findByDoctorIdAndExpectedExaminationDateBetweenAndStatusIn(
+              dayOff.getDoctor().getId(),
+              dayOff.getStartDate(),
+              dayOff.getEndDate(),
+              List.of(0, 1));
+
+      // 3. Hủy từng lịch hẹn và thông báo bệnh nhân
+      int cancelledCount = 0;
+      String doctorName =
+          dayOff.getDoctor().getUser() != null
+              ? dayOff.getDoctor().getUser().getName()
+              : "Bác sĩ";
+
+      for (Appointment appt : affected) {
+        appt.setStatus(3); // CANCELLED
+        appointmentRepository.save(appt);
+        cancelledCount++;
+
+        // Thông báo cho bệnh nhân
+        if (appt.getUser() != null) {
+          String timeSlotStr = "";
+          if (appt.getAppointmentSlot() != null
+              && appt.getAppointmentSlot().getTimeSlotTemplate() != null) {
+            var tpl = appt.getAppointmentSlot().getTimeSlotTemplate();
+            timeSlotStr = tpl.getStartTime() + " - " + tpl.getEndTime();
+          }
+          String patientTitle = "Lịch khám bị hủy do bác sĩ nghỉ";
+          String patientContent =
+              String.format(
+                  "Bác sĩ %s đã được phép nghỉ từ ngày %s đến ngày %s. "
+                      + "Lịch hẹn của bạn vào lúc %s ngày %s đã bị hủy tự động. "
+                      + "Vui lòng đặt lại lịch với bác sĩ khác. Xin lỗi vì sự bất tiện này!",
+                  doctorName,
+                  dayOff.getStartDate(),
+                  dayOff.getEndDate(),
+                  timeSlotStr,
+                  appt.getExpectedExaminationDate());
+          notificationService.createNotification(appt.getUser(), patientTitle, patientContent, 1);
+        }
+      }
+
+      // 4. Thông báo tổng kết cho bác sĩ
       if (dayOff.getDoctor().getUser() != null) {
-        String title = "Yêu cầu nghỉ phép được duyệt";
-        String content =
-            String.format(
-                "Yêu cầu nghỉ phép của bạn từ ngày %s đến ngày %s đã được duyệt.",
-                dayOff.getStartDate(), dayOff.getEndDate());
-        notificationService.createNotification(dayOff.getDoctor().getUser(), title, content, 1);
+        String doctorTitle = "Yêu cầu nghỉ phép được duyệt";
+        String doctorContent;
+        if (cancelledCount > 0) {
+          doctorContent =
+              String.format(
+                  "Yêu cầu nghỉ phép của bạn từ ngày %s đến ngày %s đã được duyệt. "
+                      + "Hệ thống đã tự động hủy %d lịch hẹn bị ảnh hưởng và thông báo đến từng bệnh nhân.",
+                  dayOff.getStartDate(), dayOff.getEndDate(), cancelledCount);
+        } else {
+          doctorContent =
+              String.format(
+                  "Yêu cầu nghỉ phép của bạn từ ngày %s đến ngày %s đã được duyệt. "
+                      + "Không có lịch hẹn nào bị ảnh hưởng trong giai đoạn này.",
+                  dayOff.getStartDate(), dayOff.getEndDate());
+        }
+        notificationService.createNotification(
+            dayOff.getDoctor().getUser(), doctorTitle, doctorContent, 1);
       }
     }
 

@@ -39,6 +39,19 @@ public class User {
   @Column(name = "anhDaiDien")
   String avatar;
 
+  /**
+   * Số lần vi phạm hủy lịch trong 48h. Khi đạt 3 lần → isBlacklisted = true.
+   */
+  @Column(name = "soLanViPham", nullable = false, columnDefinition = "INT DEFAULT 0")
+  Integer penaltyCount = 0;
+
+  /**
+   * Đánh dấu tài khoản bị khóa đặt lịch do vi phạm hủy nhiều lần.
+   * 0 = bình thường, 1 = bị chặn đặt lịch.
+   */
+  @Column(name = "biChanDatLich", nullable = false, columnDefinition = "TINYINT DEFAULT 0")
+  Integer isBlacklisted = 0;
+
   @ManyToMany(fetch = FetchType.EAGER)
   @JoinTable(
       name = "VAI_TRO_NGUOI_DUNG",

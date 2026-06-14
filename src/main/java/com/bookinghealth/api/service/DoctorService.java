@@ -4,15 +4,23 @@ import com.bookinghealth.api.dto.request.admin.DoctorStatusUpdateRequest;
 import com.bookinghealth.api.dto.response.admin.DoctorAdminResponse;
 import com.bookinghealth.api.dto.response.client.DoctorResponse;
 import com.bookinghealth.api.dto.response.client.WorkScheduleResponse;
+import com.bookinghealth.api.dto.request.client.QualificationRequest;
+import com.bookinghealth.api.dto.request.client.UpdateDoctorProfileRequest;
+import com.bookinghealth.api.dto.response.client.QualificationResponse;
 import com.bookinghealth.api.entity.Doctor;
 import com.bookinghealth.api.entity.DoctorVerification;
+import com.bookinghealth.api.entity.Qualification;
 import com.bookinghealth.api.entity.User;
 import com.bookinghealth.api.exception.AppException;
 import com.bookinghealth.api.exception.ErrorCode;
 import com.bookinghealth.api.mapper.DoctorMapper;
 import com.bookinghealth.api.repository.DoctorRepository;
 import com.bookinghealth.api.repository.DoctorVerificationRepository;
+import com.bookinghealth.api.repository.QualificationRepository;
 import com.bookinghealth.api.repository.UserRepository;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -37,6 +45,7 @@ public class DoctorService {
   UserRepository userRepository;
   WorkScheduleService workScheduleService;
   com.bookinghealth.api.repository.DoctorReviewRepository doctorReviewRepository;
+  QualificationRepository qualificationRepository;
 
   public Page<DoctorAdminResponse> getAllDoctors(
       int page, int size, String search, Integer status) {
@@ -137,5 +146,59 @@ public class DoctorService {
     return doctorReviewRepository
         .findByDoctorId(doctorId, pageable)
         .map(doctorMapper::toDoctorReviewResponse);
+  }
+
+  // ─── Cập nhật Hồ sơ Bác sĩ (Biograpy) ───
+  @Transactional
+  public DoctorResponse updateDoctorProfile(Long doctorId, UpdateDoctorProfileRequest request) {
+    Doctor doctor = doctorRepository.findById(doctorId)
+        .orElseThrow(() -> new AppException(ErrorCode.DOCTOR_NOT_FOUND));
+
+    if (request.getBiography() != null) {
+      doctor.setBiography(request.getBiography());
+    }
+
+    Doctor saved = doctorRepository.save(doctor);
+    return doctorMapper.toDoctorResponse(saved);
+  }
+
+  // ─── Đăng ký văn bằng/chứng chỉ (Client - Doctor) ───
+  @Transactional
+  public QualificationResponse addQualification(Long doctorId, QualificationRequest request) {
+    Doctor doctor = doctorRepository.findById(doctorId)
+        .orElseThrow(() -> new AppException(ErrorCode.DOCTOR_NOT_FOUND));
+
+    LocalDateTime issueDate = null;
+    if (request.getIssueDate() != null && !request.getIssueDate().isEmpty()) {
+      try {
+        // Assume format yyyy-MM-dd
+        issueDate = java.time.LocalDate.parse(request.getIssueDate()).atStartOfDay();
+      } catch (DateTimeParseException e) {
+        log.error("Invalid issue date format: {}", request.getIssueDate());
+      }
+    }
+
+    Qualification qualification = Qualification.builder()
+        .doctor(doctor)
+        .qualificationName(request.getDegree())
+        .issueDate(issueDate)
+        .attachmentUrl(request.getAttachmentUrl())
+        .status(0) // 0: Pending
+        .build();
+
+    Qualification saved = qualificationRepository.save(qualification);
+    return doctorMapper.toQualificationResponse(saved);
+  }
+
+  // ─── Duyệt/Từ chối chứng chỉ (Admin) ───
+  @Transactional
+  public QualificationResponse approveQualification(Long id, Integer status) {
+    Qualification qualification = qualificationRepository.findById(id)
+        .orElseThrow(() -> new AppException(ErrorCode.DOCTOR_NOT_FOUND)); // Or create QUALIFICATION_NOT_FOUND
+
+    // 1 - Approved, 2 - Rejected
+    qualification.setStatus(status);
+    Qualification saved = qualificationRepository.save(qualification);
+    return doctorMapper.toQualificationResponse(saved);
   }
 }

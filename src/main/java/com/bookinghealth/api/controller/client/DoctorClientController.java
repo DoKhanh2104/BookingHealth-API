@@ -6,6 +6,9 @@ import com.bookinghealth.api.service.DoctorService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import com.bookinghealth.api.dto.request.client.QualificationRequest;
+import com.bookinghealth.api.dto.request.client.UpdateDoctorProfileRequest;
+import com.bookinghealth.api.dto.response.client.QualificationResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
@@ -58,6 +61,22 @@ public class DoctorClientController {
                 com.bookinghealth.api.dto.response.client.DoctorReviewResponse>>
             builder()
         .result(doctorService.getReviewsForDoctor(id, pageable))
+        .build();
+  }
+
+  @PutMapping("/{id}/profile")
+  public ApiResponse<DoctorResponse> updateDoctorProfile(
+      @PathVariable Long id, @RequestBody UpdateDoctorProfileRequest request) {
+    return ApiResponse.<DoctorResponse>builder()
+        .result(doctorService.updateDoctorProfile(id, request))
+        .build();
+  }
+
+  @PostMapping("/{id}/qualifications")
+  public ApiResponse<QualificationResponse> addQualification(
+      @PathVariable Long id, @RequestBody QualificationRequest request) {
+    return ApiResponse.<QualificationResponse>builder()
+        .result(doctorService.addQualification(id, request))
         .build();
   }
 }
