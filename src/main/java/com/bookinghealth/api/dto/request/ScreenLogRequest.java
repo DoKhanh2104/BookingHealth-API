@@ -21,4 +21,6 @@ public class ScreenLogRequest {
   String symptoms;
 
   String specialtyName; // Optional, might be null if not found
+
+  String aiAnswer; // Optional - câu trả lời AI đã phản hồi (để lưu làm mẫu)
 }

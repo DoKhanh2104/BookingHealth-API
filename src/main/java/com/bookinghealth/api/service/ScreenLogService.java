@@ -8,6 +8,7 @@ import com.bookinghealth.api.entity.User;
 import com.bookinghealth.api.repository.ScreenLogRepository;
 import com.bookinghealth.api.repository.SpecialtyRepository;
 import com.bookinghealth.api.repository.UserRepository;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -54,6 +55,9 @@ public class ScreenLogService {
             .user(user)
             .suggestedSpecialty(specialty)
             .symptoms(request.getSymptoms())
+            .screenedAt(LocalDateTime.now())
+            .aiAnswer(request.getAiAnswer())
+            .useForTraining(0) // mặc định 0; chỉ set 1 khi người dùng bấm "Phản hồi tốt"
             .build();
 
     screenLog = screenLogRepository.save(screenLog);
@@ -63,6 +67,19 @@ public class ScreenLogService {
         .userId(user != null ? user.getId() : null)
         .specialtyName(specialty != null ? specialty.getSpecialtyName() : null)
         .symptoms(screenLog.getSymptoms())
+        .screenedAt(screenLog.getScreenedAt() != null ? screenLog.getScreenedAt().toString() : null)
+        .aiAnswer(screenLog.getAiAnswer())
         .build();
+  }
+
+  /** Người dùng bấm "Phản hồi tốt" -> đánh dấu bản ghi được dùng làm mẫu few-shot cho RAG. */
+  @Transactional
+  public void markUseForTraining(Long id) {
+    ScreenLog log =
+        screenLogRepository
+            .findById(id)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy nhật ký sàng lọc id=" + id));
+    log.setUseForTraining(1);
+    screenLogRepository.save(log);
   }
 }

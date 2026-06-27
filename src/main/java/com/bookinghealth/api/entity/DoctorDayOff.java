@@ -29,6 +29,9 @@ public class DoctorDayOff {
   @Column(name = "lyDo")
   String reason;
 
+  @Column(name = "lyDoTuChoi", length = 500)
+  String rejectReason;
+
   @Column(name = "trangThai")
   Integer status;
 

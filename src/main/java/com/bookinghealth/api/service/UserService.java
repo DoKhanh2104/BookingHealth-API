@@ -84,7 +84,13 @@ public class UserService {
       throw new AppException(ErrorCode.USER_EXISTED);
     }
 
+    Integer oldStatus = user.getStatus();
     userMapper.updateUser(user, request);
+    
+    if (oldStatus != null && !oldStatus.equals(PredefinedStatus.ACTIVE) 
+        && user.getStatus() != null && user.getStatus().equals(PredefinedStatus.ACTIVE)) {
+      user.setPenaltyCount(0);
+    }
 
     if (request.getAvatar() != null && !request.getAvatar().isEmpty()) {
       try {
@@ -152,6 +158,10 @@ public class UserService {
             ? PredefinedStatus.BLOCKED
             : PredefinedStatus.ACTIVE;
     user.setStatus(nextStatus);
+    
+    if (nextStatus == PredefinedStatus.ACTIVE) {
+      user.setPenaltyCount(0);
+    }
 
     return userMapper.toUserResponse(userRepository.save(user));
   }

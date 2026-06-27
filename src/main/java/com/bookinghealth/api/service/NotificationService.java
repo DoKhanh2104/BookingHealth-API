@@ -104,6 +104,30 @@ public class NotificationService {
     notificationRepository.save(notification);
   }
 
+  /** Đẩy 1 thông báo tới TẤT CẢ user có role ADMIN (vd: có đơn cần duyệt). */
+  @Transactional
+  public void notifyAdmins(String title, String content, Integer type) {
+    List<User> admins = userRepository.findAllAdminUsers();
+    if (admins.isEmpty()) {
+      return;
+    }
+    LocalDateTime now = LocalDateTime.now();
+    List<Notification> notifications =
+        admins.stream()
+            .map(
+                admin ->
+                    Notification.builder()
+                        .user(admin)
+                        .title(title)
+                        .content(content)
+                        .type(type)
+                        .createdAt(now)
+                        .status(0) // Unread
+                        .build())
+            .toList();
+    notificationRepository.saveAll(notifications);
+  }
+
   // Admin methods
   public Page<com.bookinghealth.api.dto.response.admin.NotificationAdminResponse> getAllForAdmin(
       String search, Pageable pageable) {

@@ -24,6 +24,10 @@ import org.springframework.transaction.annotation.Transactional;
  * <p>Job 2 — Nhắc hẹn trước 1 ngày:<br>
  * Chạy mỗi ngày lúc 08:00 (GMT+7). Tìm các lịch hẹn đang PENDING (0) hoặc
  * CONFIRMED (1) vào ngày hôm sau và gửi nhắc nhở cho cả bác sĩ lẫn bệnh nhân.
+ *
+ * <p>Job 3 — Tự huỷ lịch chờ duyệt quá hạn:<br>
+ * Chạy mỗi ngày lúc 00:05 (GMT+7). Chuyển các lịch còn PENDING (0) nhưng ngày
+ * khám đã trôi qua sang CANCELLED (3) và thông báo cho bệnh nhân.
  */
 @Slf4j
 @Service
@@ -176,6 +180,63 @@ public class NotificationSchedulerService {
     log.info(
         "[Scheduler] Hoàn tất nhắc hẹn ngày {}: {} bệnh nhân, {} bác sĩ.",
         tomorrow, patientCount, doctorCount);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // JOB 3: Tự huỷ lịch "Chờ duyệt" đã quá ngày khám — mỗi ngày lúc 00:05 (GMT+7)
+  // Cron: 0 5 0 * * *
+  // Lịch PENDING (0) mà ngày khám đã trôi qua (trước hôm nay) → CANCELLED (3),
+  // tránh để "Chờ duyệt" treo vô thời hạn và để bác sĩ không duyệt lịch quá khứ.
+  // ─────────────────────────────────────────────────────────────────────────
+
+  @Scheduled(cron = "0 5 0 * * *", zone = "Asia/Ho_Chi_Minh")
+  @Transactional
+  public void cancelOverduePendingAppointments() {
+    LocalDate today = LocalDate.now();
+
+    List<Appointment> overdue =
+        appointmentRepository.findByStatusAndExpectedExaminationDateBefore(0, today);
+
+    if (overdue.isEmpty()) {
+      log.info("[Scheduler] Không có lịch chờ duyệt quá hạn cần huỷ.");
+      return;
+    }
+
+    int notified = 0;
+    for (Appointment appointment : overdue) {
+      appointment.setStatus(3); // CANCELLED — không được duyệt trước ngày khám
+
+      if (appointment.getUser() != null) {
+        String doctorName =
+            (appointment.getDoctor() != null && appointment.getDoctor().getUser() != null)
+                ? appointment.getDoctor().getUser().getName()
+                : "bác sĩ";
+
+        String content =
+            String.format(
+                "Lịch hẹn khám với Bác sĩ %s ngày %s đã quá hạn do chưa được duyệt nên đã"
+                    + " tự động huỷ. Vui lòng đặt lại lịch khác nếu bạn vẫn cần khám. Mong bạn"
+                    + " thông cảm!",
+                doctorName, appointment.getExpectedExaminationDate());
+
+        try {
+          notificationService.createNotification(
+              appointment.getUser(), "Lịch hẹn quá hạn đã được huỷ", content, 1);
+          notified++;
+        } catch (Exception e) {
+          log.warn(
+              "[Scheduler] Không thể gửi thông báo huỷ cho appointmentId={}: {}",
+              appointment.getId(),
+              e.getMessage());
+        }
+      }
+    }
+
+    appointmentRepository.saveAll(overdue);
+    log.info(
+        "[Scheduler] Đã tự huỷ {} lịch chờ duyệt quá hạn (đã thông báo {} bệnh nhân).",
+        overdue.size(),
+        notified);
   }
 
   // ─────────────────────────────────────────────────────────────────────────

@@ -1,5 +1,6 @@
 package com.bookinghealth.api.controller.admin;
 
+import com.bookinghealth.api.dto.request.admin.DayOffRejectRequest;
 import com.bookinghealth.api.dto.response.ApiResponse;
 import com.bookinghealth.api.dto.response.admin.DayOffResponse;
 import com.bookinghealth.api.service.DoctorDayOffService;
@@ -38,9 +39,11 @@ public class DayOffAdminController {
   }
 
   @PutMapping("/{id}/reject")
-  public ApiResponse<DayOffResponse> rejectDayOff(@PathVariable Long id) {
+  public ApiResponse<DayOffResponse> rejectDayOff(
+      @PathVariable Long id, @RequestBody(required = false) DayOffRejectRequest request) {
+    String reason = request != null ? request.getReason() : null;
     return ApiResponse.<DayOffResponse>builder()
-        .result(doctorDayOffService.rejectDayOff(id))
+        .result(doctorDayOffService.rejectDayOff(id, reason))
         .build();
   }
 }

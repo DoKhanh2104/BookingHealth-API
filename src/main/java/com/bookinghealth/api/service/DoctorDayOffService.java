@@ -51,6 +51,16 @@ public class DoctorDayOffService {
             .build();
 
     doctorDayOffRepository.save(dayOff);
+
+    // Báo cho admin có đơn nghỉ phép mới cần duyệt
+    String doctorName = (doctor.getUser() != null) ? doctor.getUser().getName() : "Bác sĩ";
+    notificationService.notifyAdmins(
+        "Đơn nghỉ phép mới chờ duyệt",
+        String.format(
+            "Bác sĩ %s vừa gửi đơn xin nghỉ phép từ %s đến %s. Vui lòng kiểm tra mục Quản lý lịch.",
+            doctorName, request.getStartDate(), request.getEndDate()),
+        2);
+
     return toResponse(dayOff);
   }
 
@@ -156,21 +166,25 @@ public class DoctorDayOffService {
   }
 
   @Transactional
-  public DayOffResponse rejectDayOff(Long id) {
+  public DayOffResponse rejectDayOff(Long id, String reason) {
     DoctorDayOff dayOff =
         doctorDayOffRepository
             .findById(id)
             .orElseThrow(() -> new AppException(ErrorCode.DAY_OFF_NOT_FOUND));
     dayOff.setStatus(2); // REJECTED
+    dayOff.setRejectReason(reason);
     doctorDayOffRepository.save(dayOff);
 
-    // Send notification
+    // Send notification (kèm lý do nếu admin có nhập)
     if (dayOff.getDoctor() != null && dayOff.getDoctor().getUser() != null) {
       String title = "Yêu cầu nghỉ phép bị từ chối";
       String content =
           String.format(
               "Yêu cầu nghỉ phép của bạn từ ngày %s đến ngày %s đã bị từ chối.",
               dayOff.getStartDate(), dayOff.getEndDate());
+      if (reason != null && !reason.isBlank()) {
+        content += " Lý do: " + reason;
+      }
       notificationService.createNotification(dayOff.getDoctor().getUser(), title, content, 1);
     }
 
@@ -194,6 +208,7 @@ public class DoctorDayOffService {
         .startDate(dayOff.getStartDate())
         .endDate(dayOff.getEndDate())
         .reason(dayOff.getReason())
+        .rejectReason(dayOff.getRejectReason())
         .status(dayOff.getStatus())
         .build();
   }

@@ -23,5 +23,6 @@ public class DayOffResponse {
   LocalDate endDate;
 
   String reason;
+  String rejectReason; // Lý do admin từ chối (nếu có)
   Integer status; // 0=PENDING, 1=APPROVED, 2=REJECTED
 }

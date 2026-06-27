@@ -3,6 +3,7 @@ package com.bookinghealth.api.service;
 import com.bookinghealth.api.dto.request.admin.DoctorStatusUpdateRequest;
 import com.bookinghealth.api.dto.response.admin.DoctorAdminResponse;
 import com.bookinghealth.api.dto.response.client.DoctorResponse;
+import com.bookinghealth.api.dto.response.client.MyDoctorApplicationResponse;
 import com.bookinghealth.api.dto.response.client.WorkScheduleResponse;
 import com.bookinghealth.api.dto.request.client.QualificationRequest;
 import com.bookinghealth.api.dto.request.client.UpdateDoctorProfileRequest;
@@ -46,6 +47,61 @@ public class DoctorService {
   WorkScheduleService workScheduleService;
   com.bookinghealth.api.repository.DoctorReviewRepository doctorReviewRepository;
   QualificationRepository qualificationRepository;
+  com.bookinghealth.api.repository.RoleRepository roleRepository;
+  NotificationService notificationService;
+
+  /** Hồ sơ đăng ký bác sĩ của user đang đăng nhập (kèm trạng thái + lý do từ chối). */
+  @Transactional(readOnly = true)
+  public MyDoctorApplicationResponse getMyApplication() {
+    var context = SecurityContextHolder.getContext();
+    String username = context.getAuthentication().getName();
+    User user =
+        userRepository
+            .findByPhone(username)
+            .or(() -> userRepository.findByEmail(username))
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+    Doctor doctor = user.getDoctor();
+    if (doctor == null) {
+      return null; // chưa từng nộp hồ sơ bác sĩ
+    }
+
+    String reason =
+        doctorVerificationRepository
+            .findByDoctor(doctor)
+            .map(DoctorVerification::getReason)
+            .orElse(null);
+
+    java.util.List<Long> specialtyIds = new java.util.ArrayList<>();
+    java.util.List<String> specialtyNames = new java.util.ArrayList<>();
+    if (doctor.getSpecialties() != null) {
+      doctor
+          .getSpecialties()
+          .forEach(
+              s -> {
+                specialtyIds.add(s.getId());
+                specialtyNames.add(s.getSpecialtyName());
+              });
+    }
+
+    return MyDoctorApplicationResponse.builder()
+        .doctorId(doctor.getId())
+        .status(doctor.getStatus())
+        .rejectReason(reason)
+        .name(user.getName())
+        .phone(user.getPhone())
+        .email(user.getEmail())
+        .avatar(user.getAvatar())
+        .practiceLicenseNumber(doctor.getPracticeLicenseNumber())
+        .practiceStartDate(doctor.getPracticeStartDate())
+        .biography(doctor.getBiography())
+        .practiceLicenseImage(doctor.getPracticeLicenseImage())
+        .clinicId(doctor.getClinic() != null ? doctor.getClinic().getId() : null)
+        .clinicName(doctor.getClinic() != null ? doctor.getClinic().getClinicName() : null)
+        .specialtyIds(specialtyIds)
+        .specialtyNames(specialtyNames)
+        .build();
+  }
 
   public Page<DoctorAdminResponse> getAllDoctors(
       int page, int size, String search, Integer status) {
@@ -68,12 +124,35 @@ public class DoctorService {
       User user = doctor.getUser();
       if (user != null) {
         user.setStatus(1); // 1 là Hoạt động
+        // Cấp quyền DOCTOR cho user khi được duyệt
+        roleRepository.findByRoleName(com.bookinghealth.api.constant.PredefinedRole.DOCTOR_ROLE)
+            .ifPresent(user.getRoles()::add);
+        userRepository.save(user);
+
+        // Gửi thông báo
+        notificationService.createNotification(
+            user,
+            "Hồ sơ đã được duyệt",
+            "Chúc mừng! Hồ sơ Bác sĩ của bạn đã được quản trị viên phê duyệt. Bây giờ bạn có thể truy cập cổng dành cho Bác sĩ.",
+            1 // Type 1: System/Account Notification
+        );
       }
     } else if (request.getStatus() == 2) { // 2 là REJECTED (Từ chối)
       doctor.setStatus(2);
       if (request.getRejectReason() != null && !request.getRejectReason().trim().isEmpty()) {
         log.info(
             "Hồ sơ bác sĩ ID {} bị từ chối với lý do: {}", doctorId, request.getRejectReason());
+      }
+      User user = doctor.getUser();
+      if (user != null) {
+        String reason = (request.getRejectReason() != null && !request.getRejectReason().trim().isEmpty()) 
+            ? request.getRejectReason() : "Hồ sơ chưa đạt yêu cầu";
+        notificationService.createNotification(
+            user,
+            "Hồ sơ bị từ chối",
+            "Hồ sơ đăng ký Bác sĩ của bạn đã bị từ chối với lý do: " + reason + ". Vui lòng cập nhật lại thông tin.",
+            2 // Type 2: Alert/Warning
+        );
       }
     } else if (request.getStatus() == 3) { // 3 là LOCKED (Khóa)
       doctor.setStatus(3); // Hoặc bạn có thể giữ nguyên status hiện tại nếu chỉ muốn khóa User

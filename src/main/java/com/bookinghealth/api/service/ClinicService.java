@@ -161,13 +161,24 @@ public class ClinicService {
       return false;
     }
 
-    GeocodingResponse geo = getGeocoding(new GeocodingRequest(fullAddress));
-    if (geo == null || geo.getLatitude() == null || geo.getLongitude() == null) {
-      log.warn("Không lấy được tọa độ cho [{}] — {}", request.getId(), clinicName);
-      return false;
+    Double longitude = request.getLongitude();
+    Double latitude = request.getLatitude();
+
+    // Ưu tiên tọa độ đã geocode sẵn từ scraper → khỏi gọi LocationIQ lần nữa.
+    // Chỉ geocode khi scraper không gửi kèm tọa độ.
+    if (latitude == null || longitude == null) {
+      GeocodingResponse geo = getGeocoding(new GeocodingRequest(fullAddress));
+      if (geo == null || geo.getLatitude() == null || geo.getLongitude() == null) {
+        log.warn("Không lấy được tọa độ cho [{}] — {}", request.getId(), clinicName);
+        return false;
+      }
+      longitude = geo.getLongitude();
+      latitude = geo.getLatitude();
+    } else {
+      log.info("Dùng tọa độ sẵn có từ scraper cho [{}] — bỏ qua geocode", request.getId());
     }
 
-    return saveClinicEntity(clinicName, fullAddress, geo.getLongitude(), geo.getLatitude());
+    return saveClinicEntity(clinicName, fullAddress, longitude, latitude);
   }
 
   @Transactional

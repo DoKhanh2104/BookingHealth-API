@@ -84,4 +84,11 @@ public class AuthenticationController {
     authenticationService.resetPassword(request);
     return ApiResponse.<Void>builder().build();
   }
+
+  @PostMapping("/refresh-token")
+  public ApiResponse<AuthenticationResponse> refreshToken() {
+    return ApiResponse.<AuthenticationResponse>builder()
+        .result(authenticationService.refreshToken())
+        .build();
+  }
 }

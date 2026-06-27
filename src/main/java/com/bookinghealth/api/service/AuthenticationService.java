@@ -148,6 +148,22 @@ public class AuthenticationService {
     return AuthenticationResponse.builder().token(token).authenticated(true).build();
   }
 
+  /**
+   * Refresh token: đọc lại roles mới nhất từ DB và tạo token mới.
+   * Dùng khi role của user thay đổi (VD: được duyệt thành DOCTOR) mà không cần đăng nhập lại.
+   */
+  public AuthenticationResponse refreshToken() {
+    var context = org.springframework.security.core.context.SecurityContextHolder.getContext();
+    String username = context.getAuthentication().getName();
+
+    User user = userRepository.findByPhone(username)
+        .or(() -> userRepository.findByEmail(username))
+        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+    String token = generateToken(user);
+    return AuthenticationResponse.builder().token(token).authenticated(true).build();
+  }
+
   public IntrospectResponse introspect(IntrospectRequest request)
       throws JOSEException, ParseException {
     var token = request.getToken();
@@ -195,16 +211,62 @@ public class AuthenticationService {
 
   @org.springframework.transaction.annotation.Transactional
   public AuthenticationResponse registerDoctor(DoctorSignupRequest request) {
-    if (userRepository.existsByEmail(request.getEmail())) {
-      throw new AppException(ErrorCode.EMAIL_EXISTED);
+    User existingUser = userRepository.findByEmail(request.getEmail()).orElse(null);
+    if (existingUser == null && request.getPhone() != null && !request.getPhone().trim().isEmpty()) {
+      existingUser = userRepository.findByPhone(request.getPhone()).orElse(null);
     }
 
-    if (userRepository.existsByPhone(request.getPhone())) {
-      throw new AppException(ErrorCode.PHONE_EXISTED);
+    boolean isResubmit = false;
+    Doctor doctor = null;
+    User user = null;
+
+    if (existingUser != null) {
+      Doctor existingDoctor = existingUser.getDoctor();
+      boolean isPasswordMatch = false;
+      var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+      if (authentication != null && authentication.isAuthenticated() && !authentication.getPrincipal().equals("anonymousUser")) {
+          String currentUsername = authentication.getName();
+          if (currentUsername.equals(existingUser.getEmail()) || currentUsername.equals(existingUser.getPhone())) {
+              isPasswordMatch = true;
+          }
+      }
+      
+      if (!isPasswordMatch && request.getPassword() != null && !request.getPassword().isEmpty()) {
+          org.springframework.security.crypto.password.PasswordEncoder passwordEncoder = new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder(10);
+          isPasswordMatch = passwordEncoder.matches(request.getPassword(), existingUser.getPassword());
+      }
+
+      if (existingDoctor != null && existingDoctor.getStatus() == 2 && isPasswordMatch) {
+        isResubmit = true;
+        user = existingUser;
+        doctor = existingDoctor;
+
+        if (!user.getEmail().equals(request.getEmail()) && userRepository.existsByEmail(request.getEmail())) {
+           throw new AppException(ErrorCode.EMAIL_EXISTED);
+        }
+        if (user.getPhone() != null && !user.getPhone().equals(request.getPhone()) && userRepository.existsByPhone(request.getPhone())) {
+           throw new AppException(ErrorCode.PHONE_EXISTED);
+        }
+      } else {
+        if (existingUser.getEmail().equals(request.getEmail())) {
+          throw new AppException(ErrorCode.EMAIL_EXISTED);
+        } else {
+          throw new AppException(ErrorCode.PHONE_EXISTED);
+        }
+      }
+    } else {
+      if (userRepository.existsByEmail(request.getEmail())) {
+        throw new AppException(ErrorCode.EMAIL_EXISTED);
+      }
+      if (userRepository.existsByPhone(request.getPhone())) {
+        throw new AppException(ErrorCode.PHONE_EXISTED);
+      }
     }
 
     if (doctorRepository.existsByPracticeLicenseNumber(request.getPracticeLicenseNumber())) {
-      throw new AppException(ErrorCode.LICENSE_EXISTED);
+      if (!isResubmit || !doctor.getPracticeLicenseNumber().equals(request.getPracticeLicenseNumber())) {
+         throw new AppException(ErrorCode.LICENSE_EXISTED);
+      }
     }
 
     // 1. Upload images to Cloudinary
@@ -226,20 +288,27 @@ public class AuthenticationService {
       }
     }
 
-    // 2. Create User as ACTIVE with default USER role so they can log in
-    User user =
-        User.builder()
-            .email(request.getEmail())
-            .phone(request.getPhone())
-            .password(new BCryptPasswordEncoder(10).encode(request.getPassword()))
-            .name(request.getName())
-            .avatar(avatarUrl)
-            .status(PredefinedStatus.ACTIVE)
-            .build();
+    if (!isResubmit) {
+      user = User.builder()
+              .email(request.getEmail())
+              .phone(request.getPhone())
+              .password(new BCryptPasswordEncoder(10).encode(request.getPassword()))
+              .name(request.getName())
+              .avatar(avatarUrl)
+              .status(PredefinedStatus.ACTIVE)
+              .build();
 
-    HashSet<Role> roles = new HashSet<>();
-    roleRepository.findByRoleName(PredefinedRole.USER_ROLE).ifPresent(roles::add);
-    user.setRoles(roles);
+      HashSet<Role> roles = new HashSet<>();
+      roleRepository.findByRoleName(PredefinedRole.USER_ROLE).ifPresent(roles::add);
+      user.setRoles(roles);
+    } else {
+      user.setEmail(request.getEmail());
+      user.setPhone(request.getPhone());
+      user.setName(request.getName());
+      if (avatarUrl != null) {
+        user.setAvatar(avatarUrl);
+      }
+    }
     userRepository.save(user);
 
     // 3. Map Clinic
@@ -257,6 +326,7 @@ public class AuthenticationService {
       List<Specialty> foundSpecialties = specialtyRepository.findAllById(request.getSpecialtyIds());
       specialties.addAll(foundSpecialties);
     }
+
 
     // 5. Automatic verification via HealthDepartment (SO_Y_TE table)
     boolean autoApproved = false;
@@ -297,19 +367,41 @@ public class AuthenticationService {
           "Cảm ơn bạn đã đăng ký làm đối tác y tế của BookingHealth. Yêu cầu của bạn đang được Ban quản trị kiểm tra và xác minh. Chúng tôi sẽ thông báo ngay khi hồ sơ được kích hoạt.",
           2 // 2 = System notification
           );
+
+      // Báo cho admin có hồ sơ bác sĩ mới cần duyệt
+      notificationService.notifyAdmins(
+          "Hồ sơ bác sĩ mới chờ duyệt",
+          "Bác sĩ "
+              + request.getName()
+              + " (GPHN: "
+              + request.getPracticeLicenseNumber()
+              + ") vừa đăng ký và đang chờ duyệt. Vui lòng kiểm tra mục Quản lý bác sĩ.",
+          2 // 2 = System notification
+          );
     }
 
-    Doctor doctor =
-        Doctor.builder()
-            .user(user)
-            .clinic(clinic)
-            .specialties(specialties)
-            .practiceLicenseNumber(request.getPracticeLicenseNumber())
-            .practiceStartDate(request.getPracticeStartDate())
-            .biography(request.getBiography())
-            .practiceLicenseImage(licenseImageUrl)
-            .status(doctorStatus)
-            .build();
+    if (!isResubmit) {
+      doctor = Doctor.builder()
+              .user(user)
+              .clinic(clinic)
+              .specialties(specialties)
+              .practiceLicenseNumber(request.getPracticeLicenseNumber())
+              .practiceStartDate(request.getPracticeStartDate())
+              .biography(request.getBiography())
+              .practiceLicenseImage(licenseImageUrl)
+              .status(doctorStatus)
+              .build();
+    } else {
+      doctor.setClinic(clinic);
+      doctor.setSpecialties(specialties);
+      doctor.setPracticeLicenseNumber(request.getPracticeLicenseNumber());
+      doctor.setPracticeStartDate(request.getPracticeStartDate());
+      doctor.setBiography(request.getBiography());
+      if (licenseImageUrl != null) {
+        doctor.setPracticeLicenseImage(licenseImageUrl);
+      }
+      doctor.setStatus(doctorStatus);
+    }
 
     for (Specialty specialty : specialties) {
       if (specialty.getDoctors() == null) {
@@ -320,14 +412,25 @@ public class AuthenticationService {
 
     doctorRepository.save(doctor);
 
-    // Create Verification Request
-    DoctorVerification verification =
-        DoctorVerification.builder()
-            .doctor(doctor)
-            .status(doctorStatus)
-            .reason(null)
-            .admin(null)
-            .build();
+    // Create or Update Verification Request
+    DoctorVerification verification = null;
+    if (isResubmit) {
+      verification = doctorVerificationRepository.findByDoctor(doctor).orElse(null);
+    }
+    
+    if (verification == null) {
+      verification = DoctorVerification.builder()
+          .doctor(doctor)
+          .status(doctorStatus)
+          .reason(null)
+          .admin(null)
+          .build();
+    } else {
+      verification.setStatus(doctorStatus);
+      if (doctorStatus == 0) {
+        verification.setReason(null);
+      }
+    }
     doctorVerificationRepository.save(verification);
 
     // 7. Return auth token if auto-approved

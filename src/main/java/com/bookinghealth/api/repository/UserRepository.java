@@ -1,6 +1,7 @@
 package com.bookinghealth.api.repository;
 
 import com.bookinghealth.api.entity.User;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +20,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
   Optional<User> findByPhone(String phone);
 
   Optional<User> findByEmail(String email);
+
+  /** Tất cả user có role ADMIN — dùng để đẩy thông báo tới admin. */
+  @Query("SELECT DISTINCT u FROM User u JOIN u.roles r WHERE r.roleName = 'ADMIN'")
+  List<User> findAllAdminUsers();
 
   @Query(
       value =

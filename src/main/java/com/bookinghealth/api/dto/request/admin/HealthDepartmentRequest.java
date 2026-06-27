@@ -31,4 +31,9 @@ public class HealthDepartmentRequest {
   String phoneNumber;
 
   String doctorName;
+
+  // Tọa độ đã geocode sẵn từ scraper (có thể null → backend tự geocode)
+  Double latitude;
+
+  Double longitude;
 }

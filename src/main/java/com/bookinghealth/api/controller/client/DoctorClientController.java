@@ -2,6 +2,7 @@ package com.bookinghealth.api.controller.client;
 
 import com.bookinghealth.api.dto.response.ApiResponse;
 import com.bookinghealth.api.dto.response.client.DoctorResponse;
+import com.bookinghealth.api.dto.response.client.MyDoctorApplicationResponse;
 import com.bookinghealth.api.service.DoctorService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,14 @@ public class DoctorClientController {
       @RequestParam(required = false) String search) {
     return ApiResponse.<Page<DoctorResponse>>builder()
         .result(doctorService.getDoctorsForClient(page, size, specialtyId, clinicId, search))
+        .build();
+  }
+
+  /** Hồ sơ đăng ký bác sĩ của chính user đang đăng nhập (để xem trạng thái / nộp lại). */
+  @GetMapping("/me/application")
+  public ApiResponse<MyDoctorApplicationResponse> getMyApplication() {
+    return ApiResponse.<MyDoctorApplicationResponse>builder()
+        .result(doctorService.getMyApplication())
         .build();
   }
 

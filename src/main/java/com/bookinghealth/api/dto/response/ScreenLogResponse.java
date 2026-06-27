@@ -19,4 +19,6 @@ public class ScreenLogResponse {
   Long userId;
   String specialtyName;
   String symptoms;
+  String screenedAt;
+  String aiAnswer;
 }

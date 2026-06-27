@@ -20,6 +20,12 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
   List<Appointment> findByExpectedExaminationDateAndStatusIn(LocalDate date, List<Integer> statuses);
 
   /**
+   * Tìm các lịch hẹn còn ở 1 trạng thái nhất định nhưng ngày khám đã trôi qua.
+   * Dùng cho job tự huỷ lịch "Chờ duyệt" (status 0) đã quá hạn.
+   */
+  List<Appointment> findByStatusAndExpectedExaminationDateBefore(Integer status, LocalDate date);
+
+  /**
    * Tìm tất cả lịch hẹn của bác sĩ trong khoảng nghỉ phép với status cụ thể.
    * Dùng khi admin duyệt đơn nghỉ → hủy và thông báo cho bệnh nhân.
    */

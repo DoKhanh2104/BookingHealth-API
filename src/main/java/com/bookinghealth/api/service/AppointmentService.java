@@ -114,7 +114,7 @@ public class AppointmentService {
     User currentUser = getCurrentUser();
 
     // ── Feature 3: Kiểm tra bịnh nhân có bị chặn đặt lịch không ──
-    if (currentUser.getIsBlacklisted() != null && currentUser.getIsBlacklisted() == 1) {
+    if (currentUser.getStatus() != null && currentUser.getStatus() == 2) {
       throw new AppException(ErrorCode.USER_BLACKLISTED);
     }
 
@@ -290,7 +290,7 @@ public class AppointmentService {
 
         if (currentPenalty >= 3) {
           // Khóa tài khoản
-          currentUser.setIsBlacklisted(1);
+          currentUser.setStatus(2);
           penaltyNotifTitle = "⚠️ Tài khoản bị tạm khóa đặt lịch";
           penaltyNotifContent =
               String.format(
